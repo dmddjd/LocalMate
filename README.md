@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>🌍 LocalMate</h1>
+  <h1>LocalMate</h1>
   <h3>현지인 가이드 매칭 서비스</h3>
   <p>
     혼자 떠나는 해외여행, <b>현지인과 직접 연결</b>되어<br/>
@@ -89,14 +89,14 @@
 
 <hr/>
 
-<h2>🧩 UseCase</h2>
+<h2>UseCase</h2>
 <p>
   <img width="900" alt="UseCase" src="https://github.com/user-attachments/assets/f464ca62-8373-46b4-97c2-75ab8a02d258" />
 </p>
 
 <hr/>
 
-<h2>🗄 데이터베이스 설계</h2>
+<h2>데이터베이스 설계</h2>
 <p>
   <img width="900" alt="ERD" src="https://github.com/user-attachments/assets/66afa81a-ae51-4b55-a7af-70280bc6cdc4" />
 </p>
