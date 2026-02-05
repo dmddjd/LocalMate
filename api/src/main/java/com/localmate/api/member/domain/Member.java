@@ -1,6 +1,7 @@
 package com.localmate.api.member.domain;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -34,7 +35,8 @@ public class Member {
     private LocalDate birthDate;
 
     @Column(nullable = false)
-    private String gender;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
     @Column(nullable = false, unique = true)
     private String phoneNumber;
@@ -60,7 +62,8 @@ public class Member {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    public Member(String memberName, String memberId, String memberPw, String email, LocalDate birthDate, String gender, String phoneNumber, String countryCode, String city, String addressLine1, String addressLine2) {
+    @Builder
+    public Member(String memberName, String memberId, String memberPw, String email, LocalDate birthDate, Gender gender, String phoneNumber, String countryCode, String city, String addressLine1, String addressLine2) {
         this.role = Role.USER;
         this.memberName = memberName;
         this.memberId = memberId;
