@@ -44,15 +44,18 @@
 <hr/>
 
 <h2>📌 기술 스택</h2>
-<div style="display: grid; grid-template-columns: 120px 1fr; gap: 6px 12px;">
-  <div><b>Backend</b></div><div>Java, Spring Boot</div>
-  <div><b>Security</b></div><div>Spring Security</div>
-  <div><b>ORM</b></div><div>JPA</div>
-  <div><b>DB</b></div><div>MySQL</div>
-  <div><b>Docs</b></div><div>Swagger</div>
-  <div><b>VCS</b></div><div>Git</div>
+<div align="center">
+  <img src="https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=openjdk&logoColor=white" />&nbsp;
+  <img src="https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" />&nbsp;
+  <img src="https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white" />&nbsp;
+  <img src="https://img.shields.io/badge/JPA-59666C?style=for-the-badge&logo=hibernate&logoColor=white" />&nbsp;
+  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
 </div>
-
+<br>
+<div align="center">
+  <img src="https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black" />&nbsp;
+  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" />
+</div>
 <hr/>
 
 <h2>📌 주요 기능</h2>
