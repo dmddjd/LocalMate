@@ -11,22 +11,22 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor
-public class Member {
+public class User {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long memberNo;
+    private Long userNo;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
 
     @Column(nullable = false)
-    private String memberName;
+    private String userName;
 
     @Column(nullable = false, unique = true)
-    private String memberId;
+    private String userId;
 
     @Column(nullable = false)
-    private String memberPw;
+    private String userPw;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -63,11 +63,11 @@ public class Member {
     private Status status;
 
     @Builder
-    public Member(String memberName, String memberId, String memberPw, String email, LocalDate birthDate, Gender gender, String phoneNumber, String countryCode, String city, String addressLine1, String addressLine2) {
+    public User(String userName, String userId, String userPw, String email, LocalDate birthDate, Gender gender, String phoneNumber, String countryCode, String city, String addressLine1, String addressLine2) {
         this.role = Role.USER;
-        this.memberName = memberName;
-        this.memberId = memberId;
-        this.memberPw = memberPw;
+        this.userName = userName;
+        this.userId = userId;
+        this.userPw = userPw;
         this.email = email;
         this.birthDate = birthDate;
         this.gender = gender;

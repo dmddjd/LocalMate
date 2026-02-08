@@ -12,10 +12,10 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MemberDto {
-    private String memberName;
-    private String memberId;
-    private String memberPw;
+public class SignupDto {
+    private String userName;
+    private String userId;
+    private String userPw;
     private String email;
     private LocalDate birthDate;
     private Gender gender;
