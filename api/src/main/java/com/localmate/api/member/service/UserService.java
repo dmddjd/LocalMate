@@ -6,7 +6,7 @@ import com.localmate.api.member.domain.User;
 import com.localmate.api.member.dto.SignupDto;
 import com.localmate.api.member.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +17,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     public Optional<User> findByUserId(String userId) {
         return userRepository.findByUserId(userId);
@@ -45,7 +45,7 @@ public class UserService {
         return User.builder()
                 .userName(signupDto.getUserName())
                 .userId(signupDto.getUserId())
-                .userPw(bCryptPasswordEncoder.encode(signupDto.getUserPw()))
+                .userPw(passwordEncoder.encode(signupDto.getUserPw()))
                 .email(signupDto.getEmail())
                 .birthDate(signupDto.getBirthDate())
                 .gender(signupDto.getGender())

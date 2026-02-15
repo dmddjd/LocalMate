@@ -37,23 +37,20 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable) // 기본 로그인 페이지 비활성화
                 .httpBasic(AbstractHttpConfigurer::disable) // 인증 팝업 비활성화
 
+                // Jwt 기반 인증이므로 세션을 사용하지 않음
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
                 // 엔드포인트별 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/signup", "/login").permitAll() // 회원가입, 로그인 페이지 경로는 모든 접근 허용
+                        .requestMatchers("/signup", "/login", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // 회원가입, 로그인 페이지 경로는 모든 접근 허용
                         .requestMatchers("/admin").hasAuthority("ADMIN") //  관리자 페이지 경로는 ADMIN 권한 필요
                         .anyRequest().authenticated() // 그 외의 요청은 인증된 사용자만 접근 가능
                 )
 
                 // UsernamePasswordAuthenticationFilter 실행 이전에 JwtFilter 실행
-                .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
-
-                // Jwt 필터 실행 후 Jwt 발급 처리
-//                .addFilterAfter(new LoginFilter(authenticationManager(), jwtUtil), JwtFilter.class)
-
-                // Jwt 기반 인증이므로 세션을 사용하지 않음
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                );
+                .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
