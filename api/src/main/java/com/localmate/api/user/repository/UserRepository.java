@@ -1,12 +1,12 @@
-package com.localmate.api.member.repository;
+package com.localmate.api.user.repository;
 
-import com.localmate.api.member.domain.User;
+import com.localmate.api.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByUserId(String userId);
+    Optional<User> findById(String id);
 
     Optional<User> findByEmail(String email);
 

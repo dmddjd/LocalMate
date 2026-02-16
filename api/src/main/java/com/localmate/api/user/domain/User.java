@@ -1,4 +1,4 @@
-package com.localmate.api.member.domain;
+package com.localmate.api.user.domain;
 
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class User {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userNo;
+    private Long userId;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -23,10 +23,10 @@ public class User {
     private String userName;
 
     @Column(nullable = false, unique = true)
-    private String userId;
+    private String id;
 
     @Column(nullable = false)
-    private String userPw;
+    private String password;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -63,11 +63,11 @@ public class User {
     private Status status;
 
     @Builder
-    public User(String userName, String userId, String userPw, String email, LocalDate birthDate, Gender gender, String phoneNumber, String countryCode, String city, String addressLine1, String addressLine2) {
+    public User(String userName, String id, String password, String email, LocalDate birthDate, Gender gender, String phoneNumber, String countryCode, String city, String addressLine1, String addressLine2) {
         this.role = Role.USER;
         this.userName = userName;
-        this.userId = userId;
-        this.userPw = userPw;
+        this.id = id;
+        this.password = password;
         this.email = email;
         this.birthDate = birthDate;
         this.gender = gender;

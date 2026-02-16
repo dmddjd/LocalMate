@@ -1,6 +1,6 @@
 package com.localmate.api.security.user;
 
-import com.localmate.api.member.domain.User;
+import com.localmate.api.user.domain.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -8,7 +8,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -24,12 +23,12 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return user.getUserPw();
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return user.getUserId();
+        return user.getId();
     }
 
     // 계정 만료 여부

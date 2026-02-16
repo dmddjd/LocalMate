@@ -1,4 +1,4 @@
-package com.localmate.api.security.config;
+package com.localmate.api.global.config;
 
 import com.localmate.api.security.jwt.JwtFilter;
 import com.localmate.api.security.jwt.JwtUtil;
@@ -17,8 +17,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -44,7 +42,7 @@ public class SecurityConfig {
 
                 // 엔드포인트별 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/signup", "/login", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // 회원가입, 로그인 페이지 경로는 모든 접근 허용
+                        .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // 회원가입, 로그인 페이지 경로는 모든 접근 허용
                         .requestMatchers("/admin").hasAuthority("ADMIN") //  관리자 페이지 경로는 ADMIN 권한 필요
                         .anyRequest().authenticated() // 그 외의 요청은 인증된 사용자만 접근 가능
                 )

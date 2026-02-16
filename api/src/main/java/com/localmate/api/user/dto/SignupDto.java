@@ -1,6 +1,6 @@
-package com.localmate.api.member.dto;
+package com.localmate.api.user.dto;
 
-import com.localmate.api.member.domain.Gender;
+import com.localmate.api.user.domain.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,8 +14,8 @@ import java.time.LocalDate;
 @Builder
 public class SignupDto {
     private String userName;
-    private String userId;
-    private String userPw;
+    private String id;
+    private String password;
     private String email;
     private LocalDate birthDate;
     private Gender gender;

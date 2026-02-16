@@ -9,5 +9,4 @@ public class LocalmateApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(LocalmateApplication.class, args);
 	}
-
 }

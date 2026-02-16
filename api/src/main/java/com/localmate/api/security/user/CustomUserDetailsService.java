@@ -1,7 +1,7 @@
 package com.localmate.api.security.user;
 
-import com.localmate.api.member.domain.User;
-import com.localmate.api.member.repository.UserRepository;
+import com.localmate.api.user.domain.User;
+import com.localmate.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,8 +16,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-        Optional<User> user = userRepository.findByUserId(userId);
+    public UserDetails loadUserByUsername(String id) throws UsernameNotFoundException {
+        Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
             return new CustomUserDetails(user.get());
         }

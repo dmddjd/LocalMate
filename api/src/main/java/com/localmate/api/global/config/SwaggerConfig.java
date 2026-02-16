@@ -1,4 +1,4 @@
-package com.localmate.api.global;
+package com.localmate.api.global.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
