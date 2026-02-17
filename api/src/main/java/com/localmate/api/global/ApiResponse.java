@@ -1,10 +1,10 @@
 package com.localmate.api.global;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-@Data
+@Getter
 @AllArgsConstructor
 public class ApiResponse<T> {
     private int status;
@@ -15,7 +15,7 @@ public class ApiResponse<T> {
         return new ApiResponse<>(HttpStatus.OK.value(), message, data);
     }
 
-    public static <T> ApiResponse<T> fail(String message) {
-        return new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), message, null);
+    public static <T> ApiResponse<T> fail(HttpStatus httpStatus, String message) {
+        return new ApiResponse<>(httpStatus.value(), message, null);
     }
 }

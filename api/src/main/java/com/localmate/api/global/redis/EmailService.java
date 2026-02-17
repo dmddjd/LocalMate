@@ -47,7 +47,26 @@ public class EmailService {
     // 인증번호 검증
     public boolean verifyCode(String email, String code){
         String savedCode = redisUtil.getData(email);
-        return code.equals(savedCode);
+        if (savedCode == null) return false;
+
+        if (code.equals(savedCode)) {
+            redisUtil.deleteData(email);
+            redisUtil.setDataExpire("Email_Verified : " + email, "true", 600);
+            return true;
+        }
+
+        return false;
     }
 
+    // 인증 완료 여부 확인
+    public boolean isVerified(String email) {
+        String verified = redisUtil.getData("Email_Verified : " + email);
+
+        return "true".equals(verified);
+    }
+
+    // 인증 완료 후 삭제
+    public void removeVerified(String email) {
+        redisUtil.deleteData("Email_Verified : " + email);
+    }
 }

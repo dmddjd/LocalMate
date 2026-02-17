@@ -3,12 +3,14 @@ package com.localmate.api.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 
 @Component
@@ -16,6 +18,8 @@ public class JwtUtil {
     private final SecretKey secretKey;
 
     public JwtUtil(@Value("${spring.jwt.secret}") String secret) {
+//        byte[] decode = Base64.getDecoder().decode(secret);
+//        this.secretKey = Keys.hmacShaKeyFor(decode);
         this.secretKey = new SecretKeySpec(
                 secret.getBytes(StandardCharsets.UTF_8),
                 Jwts.SIG.HS256.key().build().getAlgorithm()
@@ -23,12 +27,12 @@ public class JwtUtil {
     }
 
     // Access Token 생성
-    public String createAccessToken(String userId, String role) {
+    public String createAccessToken(String id, String role) {
         long expiredMs = 1000 * 60 * 30; // 30분
 
         return Jwts.builder()
                 .claim("category", "access")
-                .claim("userId", userId)
+                .claim("id", id)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
@@ -37,21 +41,21 @@ public class JwtUtil {
     }
 
     // Refresh Token 생성
-    public String createRefreshToken(String userId) {
+    public String createRefreshToken(String id) {
         long expiredMs = 1000 * 60 * 60 * 24 * 7; // 7일
 
         return Jwts.builder()
                 .claim("category", "refresh")
-                .claim("userId", userId)
+                .claim("id", id)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
                 .signWith(secretKey)
                 .compact();
     }
 
-    // userId 추출
-    public String getUserId(String token) {
-        return getClaims(token).get("userId", String.class);
+    // id 추출
+    public String getId(String token) {
+        return getClaims(token).get("id", String.class);
     }
 
     // role 추출
