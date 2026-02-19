@@ -8,7 +8,8 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 @Configuration
-public class RedisConfig {
+public class RedisConfig
+{
     @Value("${spring.data.redis.host}")
     private String host;
 

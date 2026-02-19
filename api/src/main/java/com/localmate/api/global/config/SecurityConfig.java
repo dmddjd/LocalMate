@@ -42,14 +42,16 @@ public class SecurityConfig {
 
                 // 엔드포인트별 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // 회원가입, 로그인 페이지 경로는 모든 접근 허용
+                        .requestMatchers("/auth/**", "/index.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // 회원가입, 로그인 페이지 경로는 모든 접근 허용
                         .requestMatchers("/admin").hasAuthority("ADMIN") //  관리자 페이지 경로는 ADMIN 권한 필요
                         .anyRequest().authenticated() // 그 외의 요청은 인증된 사용자만 접근 가능
                 )
 
                 // UsernamePasswordAuthenticationFilter 실행 이전에 JwtFilter 실행
-                .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
 
+                // OAuth2
+                .oauth2Login(oauth2 -> oauth2.defaultSuccessUrl("/index.html", true));
         return http.build();
     }
 
