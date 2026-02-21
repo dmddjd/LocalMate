@@ -1,6 +1,6 @@
 package com.localmate.api.global.exception;
 
-import com.localmate.api.global.ApiResponse;
+import com.localmate.api.global.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

@@ -1,4 +1,4 @@
-package com.localmate.api.global.config;
+package com.localmate.api.global.redis;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

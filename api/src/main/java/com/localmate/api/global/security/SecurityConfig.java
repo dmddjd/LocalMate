@@ -1,7 +1,7 @@
-package com.localmate.api.global.config;
+package com.localmate.api.global.security;
 
-import com.localmate.api.security.jwt.JwtFilter;
-import com.localmate.api.security.jwt.JwtUtil;
+import com.localmate.api.global.jwt.JwtFilter;
+import com.localmate.api.global.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

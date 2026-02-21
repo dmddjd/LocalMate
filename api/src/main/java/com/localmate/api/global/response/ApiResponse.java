@@ -1,4 +1,4 @@
-package com.localmate.api.global;
+package com.localmate.api.global.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,11 +1,9 @@
 package com.localmate.api.user.domain;
 
-import com.localmate.api.user.dto.SignupDto;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -80,5 +78,9 @@ public class User {
         this.addressLine2 = addressLine2;
         this.enrollDate = LocalDateTime.now();
         this.status = Status.ACTIVE;
+    }
+
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
     }
 }

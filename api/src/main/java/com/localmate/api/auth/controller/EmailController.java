@@ -1,5 +1,6 @@
-package com.localmate.api.global.redis;
+package com.localmate.api.auth.controller;
 
+import com.localmate.api.auth.service.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Email Controller", description = "이메일 인증 API 입니다.")
 public class EmailController {
     private final EmailService emailService;
+
+    // ===================== 회원가입 이메일 인증 =====================
 
     @PostMapping("/email/send")
     @Operation(summary = "인증번호 발송", description = "입력한 이메일로 6자리 인증번호를 발송합니다.")
@@ -40,5 +43,28 @@ public class EmailController {
         }
     }
 
+    // ===================== 비밀번호 재설정 이메일 인증 =====================
 
+    @PostMapping("/email/find-password/send")
+    @Operation(summary = "비밀번호 재설정 인증번호 발송", description = "아이디와 이메일로 본인 확인 후 인증번호를 발송합니다.")
+    public ResponseEntity<String> sendPasswordResetCode(@RequestParam String id, @RequestParam String email) {
+        try {
+            emailService.sendPasswordResetCode(id, email);
+            return ResponseEntity.ok("인증번호가 발송되었습니다.");
+        } catch (MessagingException e) {
+            return ResponseEntity.internalServerError().body("메일 발송 중 오류가 발생했습니다.");
+        }
+    }
+
+    @PostMapping("/email/find-password/verify")
+    @Operation(summary = "비밀번호 재설정 인증번호 검증", description = "인증번호를 검증합니다.")
+    public ResponseEntity<String> verifyPasswordResetCode(@RequestParam String email, @RequestParam String code) {
+        boolean isVerified = emailService.verifyPasswordResetCode(email, code);
+
+        if (isVerified) {
+            return ResponseEntity.ok("인증 성공");
+        } else {
+            return ResponseEntity.badRequest().body("인증번호가 일치하지 않거나, 만료되었습니다.");
+        }
+    }
 }

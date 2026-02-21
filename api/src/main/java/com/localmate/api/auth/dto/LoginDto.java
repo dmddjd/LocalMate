@@ -1,4 +1,4 @@
-package com.localmate.api.user.dto;
+package com.localmate.api.auth.dto;
 
 import lombok.Data;
 

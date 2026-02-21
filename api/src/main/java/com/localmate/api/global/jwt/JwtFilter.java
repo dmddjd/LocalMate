@@ -1,4 +1,4 @@
-package com.localmate.api.security.jwt;
+package com.localmate.api.global.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

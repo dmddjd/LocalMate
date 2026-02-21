@@ -1,4 +1,4 @@
-package com.localmate.api.security.user;
+package com.localmate.api.global.security;
 
 import com.localmate.api.user.domain.User;
 import com.localmate.api.user.repository.UserRepository;

@@ -1,4 +1,4 @@
-package com.localmate.api.user.dto;
+package com.localmate.api.auth.dto;
 
 import com.localmate.api.user.domain.Gender;
 import lombok.AllArgsConstructor;
