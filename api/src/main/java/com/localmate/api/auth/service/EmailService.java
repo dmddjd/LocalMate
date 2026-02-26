@@ -33,9 +33,7 @@ public class EmailService {
         return String.format("%06d", new Random().nextInt(1000000));
     }
 
-    // ===================== 회원가입 이메일 인증 =====================
-
-    // 인증번호 발송
+    // 회원가입 인증번호 발송
     public void sendCode(String email) throws MessagingException {
         String verificationCode = generateCode();
 
@@ -51,7 +49,7 @@ public class EmailService {
         javaMailSender.send(message);
     }
 
-    // 인증번호 검증
+    // 회원가입 인증번호 검증
     public boolean verifyCode(String email, String code) {
         String savedCode = redisUtil.getData(email);
         if (savedCode == null) return false;
@@ -75,9 +73,7 @@ public class EmailService {
         redisUtil.deleteData("Email_Verified : " + email);
     }
 
-    // ===================== 비밀번호 재설정 이메일 인증 =====================
-
-    // 비밀번호 재설정 인증번호 발송 (사용자 존재 여부 검증 포함)
+    // 비밀번호 재설정 인증번호 발송
     public void sendPasswordResetCode(String id, String email) throws MessagingException {
         userRepository.findByIdAndEmail(id, email)
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "아이디와 이메일이 일치하는 사용자를 찾을 수 없습니다."));

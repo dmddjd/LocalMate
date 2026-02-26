@@ -14,13 +14,14 @@ import java.time.LocalDate;
 @Builder
 public class SignupDto {
     private String userName;
+    private String nickname;
     private String id;
     private String password;
     private String email;
     private LocalDate birthDate;
     private Gender gender;
     private String phoneNumber;
-    private String countryCode;
+    private String country;
     private String city;
     private String addressLine1;
     private String addressLine2;

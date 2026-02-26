@@ -18,10 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class EmailController {
     private final EmailService emailService;
 
-    // ===================== 회원가입 이메일 인증 =====================
-
     @PostMapping("/email/send")
-    @Operation(summary = "인증번호 발송", description = "입력한 이메일로 6자리 인증번호를 발송합니다.")
+    @Operation(summary = "회원가입 인증번호 발송", description = "입력한 이메일로 6자리 인증번호를 발송합니다.")
     public ResponseEntity<String> sendEmail(@RequestParam String email) {
         try {
             emailService.sendCode(email);
@@ -32,7 +30,7 @@ public class EmailController {
     }
 
     @PostMapping("/email/verify")
-    @Operation(summary = "인증번호 검증", description = "입력한 인증번호가 맞는지 검증합니다.")
+    @Operation(summary = "회원가입 인증번호 검증", description = "입력한 인증번호가 맞는지 검증합니다.")
     public ResponseEntity<String> verifyCode(@RequestParam String email, @RequestParam String code) {
         boolean isVerified = emailService.verifyCode(email, code);
 
@@ -42,8 +40,6 @@ public class EmailController {
             return ResponseEntity.badRequest().body("인증번호가 일치하지 않거나, 만료되었습니다.");
         }
     }
-
-    // ===================== 비밀번호 재설정 이메일 인증 =====================
 
     @PostMapping("/email/find-password/send")
     @Operation(summary = "비밀번호 재설정 인증번호 발송", description = "아이디와 이메일로 본인 확인 후 인증번호를 발송합니다.")

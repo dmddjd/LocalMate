@@ -1,21 +1,22 @@
 package com.localmate.api.global.jwt;
 
+import com.localmate.api.global.security.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -37,13 +38,13 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 5. userId, role 추출
+        // 5. id 추출 후 CustomUserDetails 로드
         String id = jwtUtil.getId(token);
-        String role = jwtUtil.getRole(token);
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(id);
 
         // 6. SecurityContext에 Authentication 등록
         UsernamePasswordAuthenticationToken authToken =
-                new UsernamePasswordAuthenticationToken(id, null, List.of(new SimpleGrantedAuthority(role)));
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
         // 7. 다음 필터로 넘김

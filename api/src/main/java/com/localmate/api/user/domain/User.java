@@ -23,6 +23,9 @@ public class User {
     private String userName;
 
     @Column(nullable = false, unique = true)
+    private String nickname;
+
+    @Column(nullable = false, unique = true)
     private String id;
 
     @Column(nullable = false)
@@ -42,7 +45,7 @@ public class User {
     private String phoneNumber;
 
     @Column(nullable = false)
-    private String countryCode;
+    private String country;
 
     @Column(nullable = false)
     private String city;
@@ -62,17 +65,21 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private Profile profile;
+
     @Builder
-    public User(String userName, String id, String password, String email, LocalDate birthDate, Gender gender, String phoneNumber, String countryCode, String city, String addressLine1, String addressLine2) {
+    public User(String userName, String nickname, String id, String password, String email, LocalDate birthDate, Gender gender, String phoneNumber, String country, String city, String addressLine1, String addressLine2) {
         this.role = Role.USER;
         this.userName = userName;
+        this.nickname = nickname;
         this.id = id;
         this.password = password;
         this.email = email;
         this.birthDate = birthDate;
         this.gender = gender;
         this.phoneNumber = phoneNumber;
-        this.countryCode = countryCode;
+        this.country = country;
         this.city = city;
         this.addressLine1 = addressLine1;
         this.addressLine2 = addressLine2;
@@ -82,5 +89,16 @@ public class User {
 
     public void updatePassword(String newPassword) {
         this.password = newPassword;
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateInfo(String country, String city, String addressLine1, String addressLine2) {
+        this.country = country;
+        this.city = city;
+        this.addressLine1 = addressLine1;
+        this.addressLine2 = addressLine2;
     }
 }

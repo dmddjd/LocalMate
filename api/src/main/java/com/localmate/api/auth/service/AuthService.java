@@ -2,11 +2,13 @@ package com.localmate.api.auth.service;
 
 import com.localmate.api.global.exception.CustomException;
 import com.localmate.api.global.jwt.JwtUtil;
+import com.localmate.api.user.domain.Profile;
 import com.localmate.api.user.domain.User;
 import com.localmate.api.auth.dto.FindIdDto;
 import com.localmate.api.auth.dto.LoginDto;
 import com.localmate.api.auth.dto.ResetPasswordDto;
 import com.localmate.api.auth.dto.SignupDto;
+import com.localmate.api.user.repository.ProfileRepository;
 import com.localmate.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
@@ -36,21 +39,24 @@ public class AuthService {
         if (userRepository.findById(signupDto.getId()).isPresent()) throw new CustomException(HttpStatus.BAD_REQUEST, "아이디 중복");
         if (userRepository.findByEmail(signupDto.getEmail()).isPresent()) throw new CustomException(HttpStatus.BAD_REQUEST, "이메일 중복");
         if (userRepository.findByPhoneNumber(signupDto.getPhoneNumber()).isPresent()) throw new CustomException(HttpStatus.BAD_REQUEST, "전화번호 중복");
+        if (userRepository.findByNickname(signupDto.getNickname()).isPresent()) throw new CustomException(HttpStatus.BAD_REQUEST, "닉네임 중복");
 
-        userRepository.save(createUserEntity(signupDto));
+        User user = userRepository.save(createUserEntity(signupDto));
+        profileRepository.save(new Profile(user));
         emailService.removeVerified(signupDto.getEmail());
     }
 
     private User createUserEntity(SignupDto signupDto) {
         return User.builder()
                 .userName(signupDto.getUserName())
+                .nickname(signupDto.getNickname())
                 .id(signupDto.getId())
                 .password(passwordEncoder.encode(signupDto.getPassword()))
                 .email(signupDto.getEmail())
                 .birthDate(signupDto.getBirthDate())
                 .gender(signupDto.getGender())
                 .phoneNumber(signupDto.getPhoneNumber())
-                .countryCode(signupDto.getCountryCode())
+                .country(signupDto.getCountry())
                 .city(signupDto.getCity())
                 .addressLine1(signupDto.getAddressLine1())
                 .addressLine2(signupDto.getAddressLine2())
