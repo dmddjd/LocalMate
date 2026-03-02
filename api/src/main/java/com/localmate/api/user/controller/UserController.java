@@ -1,7 +1,6 @@
 package com.localmate.api.user.controller;
 
 import com.localmate.api.global.response.ApiResponse;
-import com.localmate.api.global.security.CustomUserDetails;
 import com.localmate.api.user.dto.ProfileDto;
 import com.localmate.api.user.dto.ProfileUpdateDto;
 import com.localmate.api.user.dto.UserUpdateDto;
@@ -32,18 +31,18 @@ public class UserController {
     @PatchMapping("/info")
     @Operation(summary = "계정 정보 수정", description = "로그인한 유저의 계정 정보를 수정합니다.")
     public ResponseEntity<ApiResponse<Void>> updateUserInfo(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @AuthenticationPrincipal String id,
             @RequestBody UserUpdateDto userUpdateDto) {
-        userService.updateUserInfo(userDetails.getUser().getUserId(), userUpdateDto);
+        userService.updateUserInfo(id, userUpdateDto);
         return ResponseEntity.ok(ApiResponse.success("계정 정보 수정 성공!", null));
     }
 
     @PatchMapping("/profile")
     @Operation(summary = "프로필 정보 수정", description = "로그인한 유저의 프로필 정보를 수정합니다.")
     public ResponseEntity<ApiResponse<Void>> updateProfile(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @AuthenticationPrincipal String id,
             @RequestBody ProfileUpdateDto profileUpdateDto) {
-        userService.updateProfile(userDetails.getUser().getUserId(), profileUpdateDto);
+        userService.updateProfile(id, profileUpdateDto);
         return ResponseEntity.ok(ApiResponse.success("프로필 수정 성공!", null));
     }
 }

@@ -36,16 +36,16 @@ public class UserService {
     }
 
     @Transactional
-    public void updateUserInfo(Long userId, UserUpdateDto dto) {
-        User user = userRepository.findById(userId)
+    public void updateUserInfo(String id, UserUpdateDto dto) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "유저가 존재하지 않습니다."));
 
         user.updateInfo(dto.getCountry(), dto.getCity(), dto.getAddressLine1(), dto.getAddressLine2());
     }
 
     @Transactional
-    public void updateProfile(Long userId, ProfileUpdateDto dto) {
-        Profile profile = profileRepository.findByUser_UserId(userId)
+    public void updateProfile(String id, ProfileUpdateDto dto) {
+        Profile profile = profileRepository.findByUser_Id(id)
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "프로필이 존재하지 않습니다."));
 
         User user = profile.getUser();
@@ -60,9 +60,9 @@ public class UserService {
         profilePersonalityRepository.deleteAllByProfile(profile);
 
         List<ProfilePersonality> newPersonalities = dto.getPersonalityIds().stream()
-                .map(id -> {
-                    Personality personality = personalityRepository.findById(id)
-                            .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 personality입니다. id: " + id));
+                .map(personalityId -> {
+                    Personality personality = personalityRepository.findById(personalityId)
+                            .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 personality입니다. id: " + personalityId));
                     return new ProfilePersonality(profile, personality);
                 })
                 .toList();

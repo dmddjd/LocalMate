@@ -26,7 +26,6 @@ public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtUtil jwtUtil;
-    private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -49,7 +48,7 @@ public class SecurityConfig {
                 )
 
                 // UsernamePasswordAuthenticationFilter 실행 이전에 JwtFilter 실행
-                .addFilterBefore(new JwtFilter(jwtUtil, customUserDetailsService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
 
                 // OAuth2
                 .oauth2Login(oauth2 -> oauth2.defaultSuccessUrl("/index.html", true));
