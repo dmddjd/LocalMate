@@ -1,26 +1,23 @@
-package com.localmate.api.user.dto;
+package com.localmate.api.mate.dto;
 
+import com.localmate.api.user.domain.Gender;
 import com.localmate.api.user.domain.Profile;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
-public class ProfileDto {
+public class MateDto {
+    private Long userId;
     private String nickname;
-    private String country;
-    private String city;
-    private String statusMessage;
-    private int recommendationCount;
+    private Gender gender;
     private List<Long> personalities;
-    private boolean localMode;
+    private int recommendationCount;
 
-    public ProfileDto(Profile profile) {
+    public MateDto(Profile profile) {
+        this.userId = profile.getUser().getUserId();
         this.nickname = profile.getUser().getNickname();
-        this.country = profile.getUser().getCountry();
-        this.city = profile.getUser().getCity();
-        this.statusMessage = profile.getStatusMessage();
-        this.localMode = profile.isLocalMode();
+        this.gender = profile.getUser().getGender();
         this.personalities = profile.getProfilePersonalities().stream()
                 .map(pp -> pp.getPersonality().getPersonalityId())
                 .toList();

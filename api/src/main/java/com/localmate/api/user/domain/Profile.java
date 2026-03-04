@@ -3,6 +3,7 @@ package com.localmate.api.user.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ public class Profile {
     @OneToMany(mappedBy = "profile")
     private List<ProfilePersonality> profilePersonalities = new ArrayList<>();
 
+    @BatchSize(size = 100)
     @OneToMany(mappedBy = "profile")
     private List<Recommendation> recommendations = new ArrayList<>();
 

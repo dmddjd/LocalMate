@@ -5,5 +5,5 @@ import com.localmate.api.user.domain.ProfilePersonality;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProfilePersonalityRepository extends JpaRepository<ProfilePersonality, Long> {
-    void deleteAllByProfile(Profile profile);
+    void deleteAllPersonalitiesByProfile(Profile profile);
 }

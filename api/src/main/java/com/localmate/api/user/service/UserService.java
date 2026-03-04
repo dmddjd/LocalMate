@@ -49,15 +49,16 @@ public class UserService {
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "프로필이 존재하지 않습니다."));
 
         User user = profile.getUser();
-        if (!user.getNickname().equals(dto.getNickname()) &&
+        if (dto.getNickname() != null) {
+            if(!user.getNickname().equals(dto.getNickname()) &&
                 userRepository.findByNickname(dto.getNickname()).isPresent()) {
-            throw new CustomException(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다.");
+                throw new CustomException(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다.");
+            }
+            user.updateNickname(dto.getNickname());
         }
-        user.updateNickname(dto.getNickname());
-
         profile.update(dto.getStatusMessage(), dto.isLocalMode());
 
-        profilePersonalityRepository.deleteAllByProfile(profile);
+        profilePersonalityRepository.deleteAllPersonalitiesByProfile(profile);
 
         List<ProfilePersonality> newPersonalities = dto.getPersonalityIds().stream()
                 .map(personalityId -> {
