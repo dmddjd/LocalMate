@@ -36,7 +36,7 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
             "and u.city = :city " +
             "and (:gender is null or u.gender = :gender)")
     List<Profile> findMates(@Param("country") String country,
-                             @Param("city") String city,
-                             @Param("gender") Gender gender);
+                            @Param("city") String city,
+                            @Param("gender") Gender gender);
 
 }

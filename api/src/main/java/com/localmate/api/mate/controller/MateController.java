@@ -24,7 +24,7 @@ public class MateController {
 
     @GetMapping("/locals")
     @Operation(summary = "현지인 목록 조회", description = "여행지의 현지인 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<MateDto>>> getMates(@ModelAttribute MateSearchDto mateSearchDto) {
+    public ResponseEntity<ApiResponse<List<MateDto>>> getMates(MateSearchDto mateSearchDto) {
         return ResponseEntity.ok(ApiResponse.success("현지인 목록 조회 성공!", mateService.getMates(mateSearchDto)));
     }
 }
