@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인 테스트</title>
+</head>
+<body>
+    <h2>로그인 테스트</h2>
+
+    <div>
+        <label>아이디</label><br>
+        <input type="text" id="id" placeholder="아이디 입력"/>
+    </div>
+    <br>
+    <div>
+        <label>비밀번호</label><br>
+        <input type="password" id="password" placeholder="비밀번호 입력"/>
+    </div>
+    <br>
+    <button onclick="login()">로그인</button>
+
+    <h3>응답</h3>
+    <pre id="result"></pre>
+
+    <script>
+        async function login() {
+            const response = await fetch('/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id: document.getElementById('id').value,
+                    password: document.getElementById('password').value
+                })
+            });
+
+            const result = await response.json();
+            document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+
+            if (result.status === 200) {
+                localStorage.setItem('token', result.data.accessToken);
+                window.location.href = '/upload-test.html';
+            }
+        }
+    </script>
+</body>
+</html>

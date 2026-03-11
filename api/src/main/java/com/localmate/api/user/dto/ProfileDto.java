@@ -11,6 +11,7 @@ public class ProfileDto {
     private String country;
     private String city;
     private String statusMessage;
+    private String profileImageUrl;
     private int recommendationCount;
     private List<Long> personalities;
     private boolean localMode;
@@ -20,6 +21,7 @@ public class ProfileDto {
         this.country = profile.getUser().getCountry();
         this.city = profile.getUser().getCity();
         this.statusMessage = profile.getStatusMessage();
+        this.profileImageUrl = profile.getProfileImage() != null ? profile.getProfileImage().getFilePath() : null;
         this.localMode = profile.isLocalMode();
         this.personalities = profile.getProfilePersonalities().stream()
                 .map(pp -> pp.getPersonality().getPersonalityId())

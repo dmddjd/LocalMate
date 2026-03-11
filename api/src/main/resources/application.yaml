@@ -18,6 +18,11 @@ spring:
   jwt:
     secret: ${JWT_SECRET}
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
   data:
     redis:
       host: localhost
@@ -64,6 +69,9 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
+
+file:
+  upload-dir: uploads
 
 mail:
   verification:

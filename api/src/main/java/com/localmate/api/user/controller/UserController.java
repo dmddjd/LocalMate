@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @RestController
@@ -44,5 +45,14 @@ public class UserController {
             @RequestBody ProfileUpdateDto profileUpdateDto) {
         userService.updateProfile(id, profileUpdateDto);
         return ResponseEntity.ok(ApiResponse.success("프로필 수정 성공!", null));
+    }
+
+    @PatchMapping("/profile/image")
+    @Operation(summary = "프로필 사진 수정", description = "로그인한 유저의 프로필 사진을 수정합니다.")
+    public ResponseEntity<ApiResponse<Void>> updateProfileImage(
+            @AuthenticationPrincipal String id,
+            @RequestPart MultipartFile image) {
+        userService.updateProfileImage(id, image);
+        return ResponseEntity.ok(ApiResponse.success("프로필 사진 수정 성공!", null));
     }
 }

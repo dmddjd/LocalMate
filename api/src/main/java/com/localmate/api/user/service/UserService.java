@@ -5,9 +5,13 @@ import com.localmate.api.user.domain.Personality;
 import com.localmate.api.user.domain.Profile;
 import com.localmate.api.user.domain.ProfilePersonality;
 import com.localmate.api.user.domain.User;
+import com.localmate.api.global.file.domain.File;
+import com.localmate.api.global.file.domain.FileType;
+import com.localmate.api.global.file.service.FileService;
 import com.localmate.api.user.dto.ProfileDto;
 import com.localmate.api.user.dto.ProfileUpdateDto;
 import com.localmate.api.user.dto.UserUpdateDto;
+import org.springframework.web.multipart.MultipartFile;
 import com.localmate.api.user.repository.PersonalityRepository;
 import com.localmate.api.user.repository.ProfilePersonalityRepository;
 import com.localmate.api.user.repository.ProfileRepository;
@@ -27,6 +31,7 @@ public class UserService {
     private final PersonalityRepository personalityRepository;
     private final ProfilePersonalityRepository profilePersonalityRepository;
     private final UserRepository userRepository;
+    private final FileService fileService;
 
     @Transactional(readOnly = true)
     public ProfileDto getProfile(Long userId) {
@@ -69,5 +74,15 @@ public class UserService {
                 .toList();
 
         profilePersonalityRepository.saveAll(newPersonalities);
+    }
+
+    @Transactional
+    public void updateProfileImage(String id, MultipartFile file) {
+        Profile profile = profileRepository.findByUser_Id(id)
+                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "프로필이 존재하지 않습니다."));
+
+        fileService.delete(profile.getProfileImage());
+        File profileImage = fileService.save(file, "profile-images", FileType.PROFILE);
+        profile.updateProfileImage(profileImage);
     }
 }

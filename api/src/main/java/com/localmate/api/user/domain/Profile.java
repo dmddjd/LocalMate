@@ -1,5 +1,6 @@
 package com.localmate.api.user.domain;
 
+import com.localmate.api.global.file.domain.File;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +25,9 @@ public class Profile {
     @Column(nullable = false)
     private boolean localMode = false;
 
-//    private String profileImageUrl;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "file_id")
+    private File profileImage;
 
     @OneToMany(mappedBy = "profile")
     private List<ProfilePersonality> profilePersonalities = new ArrayList<>();
@@ -40,5 +43,9 @@ public class Profile {
     public void update(String statusMessage, boolean localMode) {
         this.statusMessage = statusMessage;
         this.localMode = localMode;
+    }
+
+    public void updateProfileImage(File profileImage) {
+        this.profileImage = profileImage;
     }
 }
