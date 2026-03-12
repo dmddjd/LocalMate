@@ -44,8 +44,4 @@ public class Profile {
         this.statusMessage = statusMessage;
         this.localMode = localMode;
     }
-
-    public void updateProfileImage(File profileImage) {
-        this.profileImage = profileImage;
-    }
 }

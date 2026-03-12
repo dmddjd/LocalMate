@@ -71,7 +71,7 @@ spring:
             user-name-attribute: id
 
 file:
-  upload-dir: uploads
+  upload-dir: C:/localmate/api/uploads
 
 mail:
   verification:
