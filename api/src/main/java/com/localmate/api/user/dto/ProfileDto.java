@@ -17,7 +17,7 @@ public class ProfileDto {
     private boolean localMode;
 
     public ProfileDto(Profile profile) {
-        this.profileImageUrl = profile.getProfileImage() != null ? profile.getProfileImage().getFilePath() : null;
+        this.profileImageUrl = profile.getProfileImage() != null ? profile.getProfileImage().getFileType().getFilePath(profile.getProfileImage().getChangeName()) : "/images/profile-images/default.jpg";
         this.nickname = profile.getUser().getNickname();
         this.country = profile.getUser().getCountry();
         this.city = profile.getUser().getCity();

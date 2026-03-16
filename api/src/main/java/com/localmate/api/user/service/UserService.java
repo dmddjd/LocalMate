@@ -1,6 +1,9 @@
 package com.localmate.api.user.service;
 
 import com.localmate.api.global.exception.CustomException;
+import com.localmate.api.global.file.domain.File;
+import com.localmate.api.global.file.domain.FileType;
+import com.localmate.api.global.file.service.FileService;
 import com.localmate.api.user.domain.Personality;
 import com.localmate.api.user.domain.Profile;
 import com.localmate.api.user.domain.ProfilePersonality;
@@ -16,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,6 +31,7 @@ public class UserService {
     private final PersonalityRepository personalityRepository;
     private final ProfilePersonalityRepository profilePersonalityRepository;
     private final UserRepository userRepository;
+    private final FileService fileService;
 
     @Transactional(readOnly = true)
     public ProfileDto getProfile(Long userId) {
@@ -44,7 +49,7 @@ public class UserService {
     }
 
     @Transactional
-    public void updateProfile(String id, ProfileUpdateDto dto) {
+    public void updateProfile(String id, ProfileUpdateDto dto, MultipartFile profileImage) {
         Profile profile = profileRepository.findByUser_Id(id)
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "프로필이 존재하지 않습니다."));
 
@@ -57,6 +62,14 @@ public class UserService {
             user.updateNickname(dto.getNickname());
         }
         profile.update(dto.getStatusMessage(), dto.isLocalMode());
+
+        if(profileImage != null && !profileImage.isEmpty()) {
+            if(profile.getProfileImage() != null) {
+                fileService.delete(profile.getProfileImage());
+            }
+            File newImage = fileService.upload(profileImage, FileType.PROFILE);
+            profile.updateProfileImage(newImage);
+        }
 
         profilePersonalityRepository.deleteAllPersonalitiesByProfile(profile);
 

@@ -6,11 +6,15 @@ import com.localmate.api.user.dto.ProfileUpdateDto;
 import com.localmate.api.user.dto.UserUpdateDto;
 import com.localmate.api.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @RestController
@@ -37,12 +41,17 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("계정 정보 수정 성공!", null));
     }
 
-    @PatchMapping("/profile")
+    @PatchMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "프로필 정보 수정", description = "로그인한 유저의 프로필 정보를 수정합니다.")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                encoding = @Encoding(name = "profileUpdateDto",
+                    contentType = "application/json")))
     public ResponseEntity<ApiResponse<Void>> updateProfile(
             @AuthenticationPrincipal String id,
-            @RequestBody ProfileUpdateDto profileUpdateDto) {
-        userService.updateProfile(id, profileUpdateDto);
+            @RequestPart ProfileUpdateDto profileUpdateDto,
+            @RequestPart(required = false)MultipartFile profileImage) {
+        userService.updateProfile(id, profileUpdateDto, profileImage);
         return ResponseEntity.ok(ApiResponse.success("프로필 수정 성공!", null));
     }
 }

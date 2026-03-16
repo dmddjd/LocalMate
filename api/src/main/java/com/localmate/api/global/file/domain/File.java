@@ -22,15 +22,6 @@ public class File {
     private String changeName;
 
     @Column(nullable = false)
-    private String extension;
-
-    @Column(nullable = false)
-    private Long fileSize;
-
-    @Column(nullable = false)
-    private String filePath;
-
-    @Column(nullable = false)
     private LocalDateTime uploadDate;
 
     @Column(nullable = false)
@@ -41,12 +32,9 @@ public class File {
     @Enumerated(EnumType.STRING)
     private FileType fileType;
 
-    public File(String originalName, String changeName, String extension, Long fileSize, String filePath, FileType fileType) {
+    public File(String originalName, String changeName, FileType fileType) {
         this.originalName = originalName;
         this.changeName = changeName;
-        this.extension = extension;
-        this.fileSize = fileSize;
-        this.filePath = filePath;
         this.fileType = fileType;
         this.uploadDate = LocalDateTime.now();
         this.status = FileStatus.ACTIVE;
