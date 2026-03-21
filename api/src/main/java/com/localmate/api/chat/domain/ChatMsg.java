@@ -46,7 +46,11 @@ public class ChatMsg {
         this.msgType = msgType;
         this.file = file;
         this.content = content;
-        this.sendTime = LocalDateTime.now();
         this.status = ChatMsgStatus.ACTIVE;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        this.sendTime = LocalDateTime.now();
     }
 }

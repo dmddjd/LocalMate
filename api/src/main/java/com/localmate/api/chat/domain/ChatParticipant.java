@@ -2,7 +2,6 @@ package com.localmate.api.chat.domain;
 
 import com.localmate.api.user.domain.User;
 import jakarta.persistence.*;
-import lombok.Generated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -37,5 +36,10 @@ public class ChatParticipant {
         this.chatRoom = chatRoom;
         this.user = user;
         this.status = ChatRoomParticipantStatus.JOIN;
+    }
+
+    public void updateLastRead(Long chatMsgId) {
+        this.lastReadMsgId = chatMsgId;
+        this.lastReadDate = LocalDateTime.now();
     }
 }

@@ -14,13 +14,21 @@ public class ChatRoom {
     private Long chatRoomId;
 
     @Column(nullable = false)
-    private LocalDateTime createDate = LocalDateTime.now();
+    private LocalDateTime createDate;
 
-    private Long lastMsgId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "last_msg_id")
+    private ChatMsg lastMsg;
 
+    @Column
     private LocalDateTime lastMsgDate;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private ChatRoomStatus status = ChatRoomStatus.ACTIVE;
+
+    @PrePersist
+    public void prePersist() {
+        this.createDate = LocalDateTime.now();
+    }
 }

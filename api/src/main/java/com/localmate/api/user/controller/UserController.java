@@ -1,8 +1,10 @@
 package com.localmate.api.user.controller;
 
 import com.localmate.api.global.response.ApiResponse;
+import com.localmate.api.user.dto.FindUserDto;
 import com.localmate.api.user.dto.ProfileDto;
 import com.localmate.api.user.dto.ProfileUpdateDto;
+import com.localmate.api.user.dto.UserSearchDto;
 import com.localmate.api.user.dto.UserUpdateDto;
 import com.localmate.api.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 
 @RestController
@@ -53,5 +57,11 @@ public class UserController {
             @RequestPart(required = false)MultipartFile profileImage) {
         userService.updateProfile(id, profileUpdateDto, profileImage);
         return ResponseEntity.ok(ApiResponse.success("프로필 수정 성공!", null));
+    }
+
+    @GetMapping("/users")
+    @Operation(summary = "현지인 목록 조회", description = "여행지의 현지인 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<FindUserDto>>> findUsers(UserSearchDto userSearchDto) {
+        return ResponseEntity.ok(ApiResponse.success("현지인 목록 조회 성공!", userService.findUsers(userSearchDto)));
     }
 }

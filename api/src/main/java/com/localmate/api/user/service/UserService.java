@@ -4,6 +4,8 @@ import com.localmate.api.global.exception.CustomException;
 import com.localmate.api.global.file.domain.File;
 import com.localmate.api.global.file.domain.FileType;
 import com.localmate.api.global.file.service.FileService;
+import com.localmate.api.user.dto.FindUserDto;
+import com.localmate.api.user.dto.UserSearchDto;
 import com.localmate.api.user.domain.Personality;
 import com.localmate.api.user.domain.Profile;
 import com.localmate.api.user.domain.ProfilePersonality;
@@ -82,5 +84,14 @@ public class UserService {
                 .toList();
 
         profilePersonalityRepository.saveAll(newPersonalities);
+    }
+
+    @Transactional
+    public List<FindUserDto> findUsers(UserSearchDto userSearchDto) {
+        return profileRepository.findUsers(
+                userSearchDto.getCountry(),
+                userSearchDto.getCity(),
+                userSearchDto.getGender()
+        ).stream().map(FindUserDto::new).toList();
     }
 }
