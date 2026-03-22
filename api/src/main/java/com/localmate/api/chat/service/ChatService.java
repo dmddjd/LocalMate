@@ -1,0 +1,60 @@
+package com.localmate.api.chat.service;
+
+import com.localmate.api.chat.domain.ChatParticipant;
+import com.localmate.api.chat.domain.ChatRoom;
+import com.localmate.api.chat.dto.CreateChatRoomResponseDto;
+import com.localmate.api.chat.repository.ChatParticipantRepository;
+import com.localmate.api.chat.repository.ChatRoomRepository;
+import com.localmate.api.user.domain.User;
+import com.localmate.api.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class ChatService {
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatParticipantRepository chatParticipantRepository;
+    private final UserRepository userRepository;
+
+    @Transactional
+    public CreateChatRoomResponseDto createChatRoom(Long loginUserId, Long targetUserId) {
+
+        // 1. 유저 조회
+        User loginUser = userRepository.findById(loginUserId)
+                .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
+
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
+
+        // 2. 기존 채팅방 존재 여부 확인
+        Optional<ChatRoom> existingRoom =
+                chatRoomRepository.findExistRoom(loginUserId, targetUserId);
+
+        if (existingRoom.isPresent()) {
+            return new CreateChatRoomResponseDto(
+                    existingRoom.get().getChatRoomId(),
+                    true
+            );
+        }
+
+        // 3. 채팅방 생성
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoomRepository.save(chatRoom);
+
+        // 4. 참여자 저장
+        ChatParticipant p1 = new ChatParticipant(chatRoom, loginUser);
+        ChatParticipant p2 = new ChatParticipant(chatRoom, targetUser);
+
+        chatParticipantRepository.save(p1);
+        chatParticipantRepository.save(p2);
+
+        return new CreateChatRoomResponseDto(
+                chatRoom.getChatRoomId(),
+                false
+        );
+    }
+}

@@ -1,0 +1,17 @@
+package com.localmate.api.chat.repository;
+
+import com.localmate.api.chat.domain.ChatRoom;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
+
+public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
+    @Query("select cp from ChatParticipant cp " +
+            "where cp.user.userId in (:userId1, :userId2) " +
+            "group by cp.chatRoom " +
+            "having count(distinct cp.user.userId) = 2")
+    Optional<ChatRoom> findExistRoom(@Param("userId1") Long loginUserId,
+                                     @Param("userId2") Long targetUserId);
+}

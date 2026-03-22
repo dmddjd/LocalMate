@@ -32,8 +32,7 @@ public class UserController {
     @GetMapping("/profile/{userId}")
     @Operation(summary = "프로필 조회", description = "userId로 프로필을 조회합니다.")
     public ResponseEntity<ApiResponse<ProfileDto>> getProfile(@PathVariable Long userId) {
-        ProfileDto response = userService.getProfile(userId);
-        return ResponseEntity.ok(ApiResponse.success("프로필 조회 성공!", response));
+        return ResponseEntity.ok(ApiResponse.success("프로필 조회 성공!", userService.getProfile(userId)));
     }
 
     @PatchMapping("/info")
