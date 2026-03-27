@@ -18,6 +18,7 @@ import com.localmate.api.user.repository.ProfilePersonalityRepository;
 import com.localmate.api.user.repository.ProfileRepository;
 import com.localmate.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -93,5 +95,6 @@ public class UserService {
                 userSearchDto.getCity(),
                 userSearchDto.getGender()
         ).stream().map(FindUserDto::new).toList();
+
     }
 }

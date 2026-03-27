@@ -38,12 +38,12 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         // 5. id, role 추출
-        String id = jwtUtil.getId(token);
+        String userId = jwtUtil.getId(token);
         String role = jwtUtil.getRole(token);
 
         // 6. SecurityContext에 Authentication 등록
         UsernamePasswordAuthenticationToken authToken =
-                new UsernamePasswordAuthenticationToken(id, null, List.of(new SimpleGrantedAuthority(role)));
+                new UsernamePasswordAuthenticationToken(userId, null, List.of(new SimpleGrantedAuthority(role)));
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
         // 7. 다음 필터로 넘김

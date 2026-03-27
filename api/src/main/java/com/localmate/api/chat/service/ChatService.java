@@ -1,13 +1,19 @@
 package com.localmate.api.chat.service;
 
+import com.localmate.api.chat.domain.ChatMsg;
 import com.localmate.api.chat.domain.ChatParticipant;
 import com.localmate.api.chat.domain.ChatRoom;
+import com.localmate.api.chat.dto.ChatMsgRequestDto;
+import com.localmate.api.chat.dto.ChatMsgResponseDto;
 import com.localmate.api.chat.dto.CreateChatRoomResponseDto;
+import com.localmate.api.chat.repository.ChatMsgRepository;
 import com.localmate.api.chat.repository.ChatParticipantRepository;
 import com.localmate.api.chat.repository.ChatRoomRepository;
+import com.localmate.api.global.exception.CustomException;
 import com.localmate.api.user.domain.User;
 import com.localmate.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,22 +23,23 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
+    private final ChatMsgRepository chatMsgRepository;
     private final ChatParticipantRepository chatParticipantRepository;
     private final UserRepository userRepository;
 
     @Transactional
-    public CreateChatRoomResponseDto createChatRoom(Long loginUserId, Long targetUserId) {
+    public CreateChatRoomResponseDto createChatRoom(String id, Long targetUserId) {
 
         // 1. 유저 조회
-        User loginUser = userRepository.findById(loginUserId)
-                .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
+        User loginUser = userRepository.findById(id)
+                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
 
         User targetUser = userRepository.findById(targetUserId)
-                .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
+                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
 
         // 2. 기존 채팅방 존재 여부 확인
         Optional<ChatRoom> existingRoom =
-                chatRoomRepository.findExistRoom(loginUserId, targetUserId);
+                chatRoomRepository.findExistRoom(loginUser.getUserId(), targetUserId);
 
         if (existingRoom.isPresent()) {
             return new CreateChatRoomResponseDto(
@@ -56,5 +63,18 @@ public class ChatService {
                 chatRoom.getChatRoomId(),
                 false
         );
+    }
+
+    @Transactional
+    public ChatMsgResponseDto sendMsg(Long chatRoomId, String id, ChatMsgRequestDto dto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 채팅방입니다."));
+
+        ChatMsg chatMsg = new ChatMsg(chatRoom, user, dto.getContent());
+        chatMsgRepository.save(chatMsg);
+
+        return new ChatMsgResponseDto(chatMsg);
     }
 }
