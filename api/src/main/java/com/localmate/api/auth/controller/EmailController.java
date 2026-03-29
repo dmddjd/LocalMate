@@ -1,10 +1,13 @@
 package com.localmate.api.auth.controller;
 
 import com.localmate.api.auth.service.EmailService;
+import com.localmate.api.global.exception.CustomException;
+import com.localmate.api.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,47 +23,50 @@ public class EmailController {
 
     @PostMapping("/email/send")
     @Operation(summary = "회원가입 인증번호 발송", description = "입력한 이메일로 6자리 인증번호를 발송합니다.")
-    public ResponseEntity<String> sendEmail(@RequestParam String email) {
+    public ResponseEntity<ApiResponse<Void>> sendEmail(@RequestParam String email) {
         try {
             emailService.sendCode(email);
-            return ResponseEntity.ok("인증번호가 발송되었습니다.");
+            return ResponseEntity.ok(ApiResponse.success("인증번호가 발송되었습니다.", null));
         } catch (MessagingException e) {
-            return ResponseEntity.internalServerError().body("메일 발송 중 오류가 발생했습니다.");
+            throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR, "메일 발송 중 오류가 발생했습니다.");
         }
     }
 
     @PostMapping("/email/verify")
     @Operation(summary = "회원가입 인증번호 검증", description = "입력한 인증번호가 맞는지 검증합니다.")
-    public ResponseEntity<String> verifyCode(@RequestParam String email, @RequestParam String code) {
+    public ResponseEntity<ApiResponse<Void>> verifyCode(@RequestParam String email, @RequestParam String code) {
         boolean isVerified = emailService.verifyCode(email, code);
 
         if (isVerified) {
-            return ResponseEntity.ok("인증 성공");
+            return ResponseEntity.ok(ApiResponse.success("인증 성공", null));
         } else {
-            return ResponseEntity.badRequest().body("인증번호가 일치하지 않거나, 만료되었습니다.");
+//            return ResponseEntity.badRequest().body("인증번호가 일치하지 않거나, 만료되었습니다.");
+            throw new CustomException(HttpStatus.BAD_REQUEST, "인증번호가 일치하지 않거나, 만료되었습니다.");
         }
     }
 
     @PostMapping("/email/find-password/send")
     @Operation(summary = "비밀번호 재설정 인증번호 발송", description = "아이디와 이메일로 본인 확인 후 인증번호를 발송합니다.")
-    public ResponseEntity<String> sendPasswordResetCode(@RequestParam String id, @RequestParam String email) {
+    public ResponseEntity<ApiResponse<Void>> sendPasswordResetCode(@RequestParam String id, @RequestParam String email) {
         try {
             emailService.sendPasswordResetCode(id, email);
-            return ResponseEntity.ok("인증번호가 발송되었습니다.");
+            return ResponseEntity.ok(ApiResponse.success("인증번호가 발송되었습니다.", null));
         } catch (MessagingException e) {
-            return ResponseEntity.internalServerError().body("메일 발송 중 오류가 발생했습니다.");
+            throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR, "메일 발송 중 오류가 발생했습니다.");
         }
     }
 
     @PostMapping("/email/find-password/verify")
     @Operation(summary = "비밀번호 재설정 인증번호 검증", description = "인증번호를 검증합니다.")
-    public ResponseEntity<String> verifyPasswordResetCode(@RequestParam String email, @RequestParam String code) {
+    public ResponseEntity<ApiResponse<Void>> verifyPasswordResetCode(@RequestParam String email, @RequestParam String code) {
         boolean isVerified = emailService.verifyPasswordResetCode(email, code);
 
         if (isVerified) {
-            return ResponseEntity.ok("인증 성공");
+            return ResponseEntity.ok(ApiResponse.success("인증 성공", null));
         } else {
-            return ResponseEntity.badRequest().body("인증번호가 일치하지 않거나, 만료되었습니다.");
+//            return ResponseEntity.badRequest().body("인증번호가 일치하지 않거나, 만료되었습니다.");
+            throw new CustomException(HttpStatus.BAD_REQUEST, "인증번호가 일치하지 않거나, 만료되었습니다.");
+
         }
     }
 }

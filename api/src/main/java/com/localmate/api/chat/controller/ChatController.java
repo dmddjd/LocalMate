@@ -35,7 +35,6 @@ public class ChatController {
             @RequestBody CreateChatRoomRequestDto request,
             @AuthenticationPrincipal String id
             ) {
-
         return ResponseEntity.ok(ApiResponse.success("채팅방 생성 성공!", chatService.createChatRoom(id, request.getTargetUserId())));
     }
 
@@ -49,6 +48,4 @@ public class ChatController {
         ChatMsgResponseDto response = chatService.sendMsg(chatRoomId, principal.getName(), dto);
         messagingTemplate.convertAndSend("/topic/chat/" + chatRoomId, response);
     }
-
-
 }

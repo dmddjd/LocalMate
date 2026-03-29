@@ -32,10 +32,20 @@
 
     <script>
         let stompClient = null;
+        let subscription = null;
 
         function connect() {
             const token = document.getElementById('token').value;
             const chatRoomId = document.getElementById('chatRoomId').value;
+
+            if (stompClient !== null) {
+                if (subscription) {
+                    subscription.unsubscribe();
+                    subscription = null;
+                }
+                stompClient.disconnect();
+                stompClient = null;
+            }
 
             const socket = new SockJS('/ws');
             stompClient = Stomp.over(socket);
@@ -44,7 +54,7 @@
                 { Authorization: 'Bearer ' + token },
                 function () {
                     addMessage('[연결 성공]');
-                    stompClient.subscribe('/topic/chat/' + chatRoomId, function (message) {
+                    subscription = stompClient.subscribe('/topic/chat/' + chatRoomId, function (message) {
                         const body = JSON.parse(message.body);
                         addMessage('[' + body.nickname + ']: ' + body.content);
                     });
