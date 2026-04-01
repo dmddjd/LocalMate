@@ -53,26 +53,6 @@ public class JwtUtil {
                 .compact();
     }
 
-    // id 추출
-    public String getId(String token) {
-        return getClaims(token).get("id", String.class);
-    }
-
-    // role 추출
-    public String getRole(String token) {
-        return getClaims(token).get("role", String.class);
-    }
-
-    // category 추출
-    public String getCategory(String token) {
-        return getClaims(token).get("category", String.class);
-    }
-
-    // 만료 여부 확인
-    public boolean isExpired(String token) {
-        return getClaims(token).getExpiration().before(new Date());
-    }
-
     // Access Token 유효성 검사
     public boolean validateAccessToken(String token) {
         try {
@@ -93,6 +73,32 @@ public class JwtUtil {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    // Refresh Token 만료
+    public Long getExpiration(String token) {
+        Date expiration = getClaims(token).getExpiration();
+        return (expiration.getTime() - System.currentTimeMillis() / 1000);
+    }
+
+    // id 추출
+    public String getId(String token) {
+        return getClaims(token).get("id", String.class);
+    }
+
+    // role 추출
+    public String getRole(String token) {
+        return getClaims(token).get("role", String.class);
+    }
+
+    // category 추출
+    public String getCategory(String token) {
+        return getClaims(token).get("category", String.class);
+    }
+
+    // 만료 여부 확인
+    public boolean isExpired(String token) {
+        return getClaims(token).getExpiration().before(new Date());
     }
 
     // 토큰 추출

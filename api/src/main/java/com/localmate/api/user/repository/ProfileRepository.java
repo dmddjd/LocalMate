@@ -12,10 +12,11 @@ import java.util.Optional;
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
     // 프로필 조회
     @Query("select p from Profile p " +
-            "join fetch p.user " +
+            "join fetch p.user u " +
             "left join fetch p.profilePersonalities pp " +
             "left join fetch pp.personality " +
-            "where p.user.userId = :userId")
+            "where p.user.userId = :userId " +
+            "and u.status = 'ACTIVE'")
     Optional<Profile> findByUser_UserId(@Param("userId") Long userId);
 
     // 프로필 수정
@@ -34,7 +35,8 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
             "where p.localMode = true " +
             "and u.country = :country " +
             "and u.city = :city " +
-            "and (:gender is null or u.gender = :gender)")
+            "and (:gender is null or u.gender = :gender)" +
+            "and u.status = 'ACTIVE'")
     List<Profile> findUsers(@Param("country") String country,
                             @Param("city") String city,
                             @Param("gender") Gender gender);

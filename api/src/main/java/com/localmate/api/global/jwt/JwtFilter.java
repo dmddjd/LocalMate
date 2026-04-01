@@ -1,5 +1,6 @@
 package com.localmate.api.global.jwt;
 
+import com.localmate.api.global.redis.RedisUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
+    private final RedisUtil redisUtil;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -37,16 +39,22 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 5. id, role 추출
+        // 5. 블랙리스트 체크
+        if (redisUtil.getData("BlackList:" + token) != null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 6. id, role 추출
         String userId = jwtUtil.getId(token);
         String role = jwtUtil.getRole(token);
 
-        // 6. SecurityContext에 Authentication 등록
+        // 7. SecurityContext에 Authentication 등록
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(userId, null, List.of(new SimpleGrantedAuthority(role)));
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
-        // 7. 다음 필터로 넘김
+        // 8. 다음 필터로 넘김
         filterChain.doFilter(request, response);
     }
 }

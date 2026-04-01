@@ -1,20 +1,15 @@
 package com.localmate.api.auth.controller;
 
+import com.localmate.api.auth.dto.*;
 import com.localmate.api.global.response.ApiResponse;
-import com.localmate.api.auth.dto.FindIdDto;
-import com.localmate.api.auth.dto.LoginDto;
-import com.localmate.api.auth.dto.ResetPasswordDto;
-import com.localmate.api.auth.dto.SignupDto;
 import com.localmate.api.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -26,10 +21,20 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    @Operation(summary = "회원가입", description = "입력값을 기반으로 회원가입합니다.")
+    @Operation(summary = "회원 가입", description = "입력값을 기반으로 회원 가입합니다.")
     public ResponseEntity<ApiResponse<Void>> signup(@Valid @RequestBody SignupDto signupDto) {
         authService.signup(signupDto);
         return ResponseEntity.ok(ApiResponse.success("회원가입 성공!", null));
+    }
+
+    @DeleteMapping("/withdraw")
+    @Operation(summary = "회원 탙퇴", description = "비밀번호 확인 후 회원 탈퇴합니다.")
+    public ResponseEntity<ApiResponse<Void>> withdraw(
+        @AuthenticationPrincipal String id,
+        @RequestBody WithdrawDto withdrawDto
+    ){
+        authService.withdraw(id, withdrawDto.getPassword());
+        return ResponseEntity.ok(ApiResponse.success("회원 탈퇴 성공!", null));
     }
 
     @PostMapping("/login")
@@ -37,6 +42,17 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Map<String, String>>> login(@Valid @RequestBody LoginDto loginDto) {
         Map<String, String> tokenMap = authService.login(loginDto);
         return ResponseEntity.ok(ApiResponse.success("로그인 성공!", tokenMap));
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "로그아웃", description = "로그아웃 합니다.")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @AuthenticationPrincipal String id,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        String accessToken = authorization.substring(7);
+        authService.logout(id, accessToken);
+        return ResponseEntity.ok(ApiResponse.success("로그아웃 성공!", null));
     }
 
     @PostMapping("/find-id")

@@ -2,6 +2,7 @@ package com.localmate.api.global.security;
 
 import com.localmate.api.global.jwt.JwtFilter;
 import com.localmate.api.global.jwt.JwtUtil;
+import com.localmate.api.global.redis.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,7 @@ public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtUtil jwtUtil;
+    private final RedisUtil redisUtil;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -49,7 +51,7 @@ public class SecurityConfig {
                 )
 
                 // UsernamePasswordAuthenticationFilter 실행 이전에 JwtFilter 실행
-                .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtFilter(jwtUtil, redisUtil), UsernamePasswordAuthenticationFilter.class)
 
                 // OAuth2
                 .oauth2Login(oauth2 -> oauth2.defaultSuccessUrl("/index.html", true));

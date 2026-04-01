@@ -6,7 +6,6 @@ import com.localmate.api.chat.dto.CreateChatRoomRequestDto;
 import com.localmate.api.chat.dto.CreateChatRoomResponseDto;
 import com.localmate.api.chat.service.ChatService;
 import com.localmate.api.global.response.ApiResponse;
-import com.localmate.api.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

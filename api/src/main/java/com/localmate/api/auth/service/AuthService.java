@@ -2,6 +2,7 @@ package com.localmate.api.auth.service;
 
 import com.localmate.api.global.exception.CustomException;
 import com.localmate.api.global.jwt.JwtUtil;
+import com.localmate.api.global.redis.RedisUtil;
 import com.localmate.api.user.domain.Profile;
 import com.localmate.api.user.domain.User;
 import com.localmate.api.auth.dto.FindIdDto;
@@ -30,6 +31,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
+    private final RedisUtil redisUtil;
 
     public void signup(SignupDto signupDto) {
         if (!emailService.isVerified(signupDto.getEmail())) {
@@ -63,6 +65,16 @@ public class AuthService {
                 .build();
     }
 
+    public void withdraw(String id, String password) {
+        User user = userRepository.findById(id).orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "유저가 존재하지 않습니다."));
+
+        if(!passwordEncoder.matches(password, user.getPassword())) {
+            throw new CustomException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
+        }
+
+        user.withdraw();
+    }
+
     public Map<String, String> login(LoginDto loginDto) {
         User user = userRepository.findById(loginDto.getId())
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 아이디입니다."));
@@ -79,6 +91,16 @@ public class AuthService {
         tokenMap.put("refreshToken", refreshToken);
 
         return tokenMap;
+    }
+
+    public void logout(String id, String accessToken) {
+        // refresh token 삭제
+        redisUtil.deleteData(id);
+
+        // access token 블랙리스트 등록
+        Long expiration = jwtUtil.getExpiration(accessToken);
+        redisUtil.setDataExpire("BlackList:" + accessToken, "logout", expiration);
+
     }
 
     public String findId(FindIdDto findIdDto) {
@@ -98,4 +120,5 @@ public class AuthService {
         user.updatePassword(passwordEncoder.encode(resetPasswordDto.getNewPassword()));
         emailService.removePasswordResetVerified(resetPasswordDto.getEmail());
     }
+
 }

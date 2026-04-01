@@ -34,33 +34,30 @@ public class EmailService {
     }
 
     // 회원가입 인증번호 발송
-    public void sendCode(String email) throws MessagingException {
+    public void sendCode(String email) {
         String verificationCode = generateCode();
-
         redisUtil.setDataExpire(email, verificationCode, expiration);
 
-        MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-        helper.setTo(email);
-        helper.setSubject("[LocalMate] 회원가입 인증번호");
-        helper.setText("인증번호는 <b>" + verificationCode + "</b>입니다. 5분 내에 입력해주세요.", true);
-
-        javaMailSender.send(message);
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(email);
+            helper.setSubject("[LocalMate] 회원가입 인증번호");
+            helper.setText("인증번호는 <b>" + verificationCode +"</b> 입니다. 5분 내에 입력해주세요.", true);
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR, "메일 발송 중 오류가 발생했습니다.");
+        }
     }
 
     // 회원가입 인증번호 검증
-    public boolean verifyCode(String email, String code) {
+    public void verifyCode(String email, String code) {
         String savedCode = redisUtil.getData(email);
-        if (savedCode == null) return false;
-
-        if (code.equals(savedCode)) {
-            redisUtil.deleteData(email);
-            redisUtil.setDataExpire("Email_Verified : " + email, "true", 600);
-            return true;
+        if(savedCode == null || !code.equals(savedCode)) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "인증번호가 일치하지 않거나, 만료되었습니다.");
         }
-
-        return false;
+        redisUtil.deleteData(email);
+        redisUtil.setDataExpire("Email_Verified : " + email, "true", 600);
     }
 
     // 인증 완료 여부 확인
@@ -74,33 +71,33 @@ public class EmailService {
     }
 
     // 비밀번호 재설정 인증번호 발송
-    public void sendPasswordResetCode(String id, String email) throws MessagingException {
-        userRepository.findByIdAndEmail(id, email)
-                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "아이디와 이메일이 일치하는 사용자를 찾을 수 없습니다."));
+    public void sendPasswordResetCode(String id, String email) {
+        userRepository.findByIdAndEmail(id, email).orElseThrow(() ->
+                new CustomException(HttpStatus.NOT_FOUND, "아이디와 이메일이 일치하는 사용자를 찾을 수 없습니다."));
 
         String code = generateCode();
         redisUtil.setDataExpire(PW_RESET_CODE_PREFIX + email, code, expiration);
 
-        MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-        helper.setTo(email);
-        helper.setSubject("[LocalMate] 비밀번호 재설정 인증번호");
-        helper.setText("인증번호는 <b>" + code + "</b>입니다. 5분 내에 입력해주세요.", true);
-
-        javaMailSender.send(message);
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(email);
+            helper.setSubject("[LocalMate] 비밀번호 재설정 인증번호");
+            helper.setText("인증번호는 <b>" + code + "</b> 입니다. 5분 내에 입력해주세요.", true);
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR, "메일 발송 중 오류가 발생했습니다.");
+        }
     }
 
     // 비밀번호 재설정 인증번호 검증
-    public boolean verifyPasswordResetCode(String email, String code) {
+    public void verifyPasswordResetCode(String email, String code) {
         String savedCode = redisUtil.getData(PW_RESET_CODE_PREFIX + email);
-        if (savedCode == null) return false;
-
-        if (!code.equals(savedCode)) return false;
-
+        if(savedCode == null || !code.equals(savedCode)) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "인증번호가 일치하지 않거나, 만료되었습니다.");
+        }
         redisUtil.deleteData(PW_RESET_CODE_PREFIX + email);
         redisUtil.setDataExpire(PW_RESET_VERIFIED_PREFIX + email, "true", PW_RESET_VERIFIED_TTL);
-        return true;
     }
 
     // 비밀번호 재설정 인증 완료 여부 확인

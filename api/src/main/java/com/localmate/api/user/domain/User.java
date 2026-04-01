@@ -87,6 +87,11 @@ public class User {
         this.status = Status.ACTIVE;
     }
 
+    public void withdraw() {
+        this.status = Status.DELETE;
+        this.withdrawDate = LocalDateTime.now();
+    }
+
     public void updatePassword(String newPassword) {
         this.password = newPassword;
     }

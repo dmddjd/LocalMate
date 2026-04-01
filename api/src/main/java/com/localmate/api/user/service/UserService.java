@@ -59,16 +59,16 @@ public class UserService {
 
         User user = profile.getUser();
         if (dto.getNickname() != null) {
-            if(!user.getNickname().equals(dto.getNickname()) &&
-                userRepository.findByNickname(dto.getNickname()).isPresent()) {
+            if (!user.getNickname().equals(dto.getNickname()) &&
+                    userRepository.findByNickname(dto.getNickname()).isPresent()) {
                 throw new CustomException(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다.");
             }
             user.updateNickname(dto.getNickname());
         }
         profile.update(dto.getStatusMessage(), dto.isLocalMode());
 
-        if(profileImage != null && !profileImage.isEmpty()) {
-            if(profile.getProfileImage() != null) {
+        if (profileImage != null && !profileImage.isEmpty()) {
+            if (profile.getProfileImage() != null) {
                 fileService.delete(profile.getProfileImage());
             }
             File newImage = fileService.upload(profileImage, FileType.PROFILE);
@@ -76,16 +76,16 @@ public class UserService {
         }
 
         profilePersonalityRepository.deleteAllPersonalitiesByProfile(profile);
-
-        List<ProfilePersonality> newPersonalities = dto.getPersonalityIds().stream()
-                .map(personalityId -> {
-                    Personality personality = personalityRepository.findById(personalityId)
-                            .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 personality입니다. id: " + personalityId));
-                    return new ProfilePersonality(profile, personality);
-                })
-                .toList();
-
-        profilePersonalityRepository.saveAll(newPersonalities);
+        if (dto.getPersonalityIds() != null && !dto.getPersonalityIds().isEmpty()) {
+            List<ProfilePersonality> newPersonalities = dto.getPersonalityIds().stream()
+                    .map(personalityId -> {
+                        Personality personality = personalityRepository.findById(personalityId)
+                                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 personality입니다. id: " + personalityId));
+                        return new ProfilePersonality(profile, personality);
+                    })
+                    .toList();
+            profilePersonalityRepository.saveAll(newPersonalities);
+        }
     }
 
     @Transactional
@@ -95,6 +95,5 @@ public class UserService {
                 userSearchDto.getCity(),
                 userSearchDto.getGender()
         ).stream().map(FindUserDto::new).toList();
-
     }
 }
