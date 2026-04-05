@@ -65,8 +65,8 @@ public class AuthService {
                 .build();
     }
 
-    public void withdraw(String id, String password) {
-        User user = userRepository.findById(id).orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "유저가 존재하지 않습니다."));
+    public void withdraw(Long userId, String password) {
+        User user = userRepository.findByUserId(userId).orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "유저가 존재하지 않습니다."));
 
         if(!passwordEncoder.matches(password, user.getPassword())) {
             throw new CustomException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
@@ -83,8 +83,10 @@ public class AuthService {
             throw new CustomException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
         }
 
-        String accessToken = jwtUtil.createAccessToken(user.getId(), user.getRole().name());
-        String refreshToken = jwtUtil.createRefreshToken(user.getId());
+        String accessToken = jwtUtil.createAccessToken(user.getUserId(), user.getRole().name());
+        String refreshToken = jwtUtil.createRefreshToken(user.getUserId());
+
+        redisUtil.setDataExpire(user.getUserId().toString(), refreshToken, 60 * 60 * 24 * 7L);
 
         Map<String, String> tokenMap = new HashMap<>();
         tokenMap.put("accessToken", accessToken);
@@ -93,9 +95,9 @@ public class AuthService {
         return tokenMap;
     }
 
-    public void logout(String id, String accessToken) {
+    public void logout(Long userId, String accessToken) {
         // refresh token 삭제
-        redisUtil.deleteData(id);
+        redisUtil.deleteData(userId.toString());
 
         // access token 블랙리스트 등록
         Long expiration = jwtUtil.getExpiration(accessToken);

@@ -19,14 +19,6 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
             "and u.status = 'ACTIVE'")
     Optional<Profile> findByUser_UserId(@Param("userId") Long userId);
 
-    // 프로필 수정
-    @Query("select p from Profile p " +
-            "join fetch p.user " +
-            "left join fetch p.profilePersonalities pp " +
-            "left join fetch pp.personality " +
-            "where p.user.id = :id")
-    Optional<Profile> findByUser_Id(@Param("id") String id);
-
     // 현지인 목록 조회
     @Query("select p from Profile p " +
             "join fetch p.user u "  +

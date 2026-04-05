@@ -45,16 +45,16 @@ public class UserService {
     }
 
     @Transactional
-    public void updateUserInfo(String id, UserUpdateDto dto) {
-        User user = userRepository.findById(id)
+    public void updateUserInfo(Long userId, UserUpdateDto dto) {
+        User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "유저가 존재하지 않습니다."));
 
         user.updateInfo(dto.getCountry(), dto.getCity(), dto.getAddressLine1(), dto.getAddressLine2());
     }
 
     @Transactional
-    public void updateProfile(String id, ProfileUpdateDto dto, MultipartFile profileImage) {
-        Profile profile = profileRepository.findByUser_Id(id)
+    public void updateProfile(Long userId, ProfileUpdateDto dto, MultipartFile profileImage) {
+        Profile profile = profileRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "프로필이 존재하지 않습니다."));
 
         User user = profile.getUser();
@@ -77,12 +77,12 @@ public class UserService {
 
         profilePersonalityRepository.deleteAllPersonalitiesByProfile(profile);
         if (dto.getPersonalityIds() != null && !dto.getPersonalityIds().isEmpty()) {
-            List<ProfilePersonality> newPersonalities = dto.getPersonalityIds().stream()
-                    .map(personalityId -> {
-                        Personality personality = personalityRepository.findById(personalityId)
-                                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 personality입니다. id: " + personalityId));
-                        return new ProfilePersonality(profile, personality);
-                    })
+            List<Personality> personalities = personalityRepository.findAllById(dto.getPersonalityIds());
+            if (personalities.size() != dto.getPersonalityIds().size()) {
+                throw new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 personality가 포함되어 있습니다.");
+            }
+            List<ProfilePersonality> newPersonalities = personalities.stream()
+                    .map(personality -> new ProfilePersonality(profile, personality))
                     .toList();
             profilePersonalityRepository.saveAll(newPersonalities);
         }

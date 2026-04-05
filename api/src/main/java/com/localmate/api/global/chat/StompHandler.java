@@ -39,8 +39,8 @@ public class StompHandler implements ChannelInterceptor {
             if (token != null && token.startsWith("Bearer ")) {
                 token = token.substring(7);
                 if(jwtUtil.validateAccessToken(token)) {
-                    String id = jwtUtil.getId(token);
-                    Authentication auth = new UsernamePasswordAuthenticationToken(id, null, List.of(new SimpleGrantedAuthority("User")));
+                    Long userId = jwtUtil.getUserId(token);
+                    Authentication auth = new UsernamePasswordAuthenticationToken(userId, null, List.of(new SimpleGrantedAuthority("USER")));
                     accessor.setUser(auth);
                 }
             }

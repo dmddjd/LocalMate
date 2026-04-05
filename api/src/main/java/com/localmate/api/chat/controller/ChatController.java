@@ -13,13 +13,12 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,9 +31,9 @@ public class ChatController {
     @Operation(summary = "채팅방 생성", description = "상대방과의 1대1 채팅방을 생성합니다")
     public ResponseEntity<ApiResponse<CreateChatRoomResponseDto>> createChatRoom(
             @RequestBody CreateChatRoomRequestDto request,
-            @AuthenticationPrincipal String id
+            @AuthenticationPrincipal Long userId
             ) {
-        return ResponseEntity.ok(ApiResponse.success("채팅방 생성 성공!", chatService.createChatRoom(id, request.getTargetUserId())));
+        return ResponseEntity.ok(ApiResponse.success("채팅방 생성 성공!", chatService.createChatRoom(userId, request.getTargetUserId())));
     }
 
     @MessageMapping("/chat/{chatRoomId}")
@@ -42,9 +41,11 @@ public class ChatController {
                         // AuthenticationPrincipal : Http 필터 기반이기 때문에 WebSocket에서 동작하지 않음
                         // @AuthenticationPrincipal String id,
                         // Principal : StompHandler에서 accessor.setUser(auth)로 저장한 인증 객체를 가져옴
-                        Principal principal,
+                        Authentication authentication,
                         @Payload ChatMsgRequestDto dto) {
-        ChatMsgResponseDto response = chatService.sendMsg(chatRoomId, principal.getName(), dto);
+
+        Long userId = (Long) authentication.getPrincipal();
+        ChatMsgResponseDto response = chatService.sendMsg(chatRoomId, userId, dto);
         messagingTemplate.convertAndSend("/topic/chat/" + chatRoomId, response);
     }
 }

@@ -8,8 +8,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
@@ -17,11 +15,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String id) throws UsernameNotFoundException {
-        Optional<User> user = userRepository.findById(id);
-        if (user.isPresent()) {
-            return new CustomUserDetails(user.get());
-        }
+        User user = userRepository.findById(id).orElseThrow(() ->
+                new UsernameNotFoundException("존재하지 않는 아이디 입니다."));
 
-        throw new UsernameNotFoundException("존재하지 않는 아이디 입니다.");
+        return new CustomUserDetails(user);
     }
 }

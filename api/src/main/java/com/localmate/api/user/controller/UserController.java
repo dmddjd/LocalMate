@@ -38,9 +38,9 @@ public class UserController {
     @PatchMapping("/info")
     @Operation(summary = "계정 정보 수정", description = "로그인한 유저의 계정 정보를 수정합니다.")
     public ResponseEntity<ApiResponse<Void>> updateUserInfo(
-            @AuthenticationPrincipal String id,
+            @AuthenticationPrincipal Long userId,
             @RequestBody UserUpdateDto userUpdateDto) {
-        userService.updateUserInfo(id, userUpdateDto);
+        userService.updateUserInfo(userId, userUpdateDto);
         return ResponseEntity.ok(ApiResponse.success("계정 정보 수정 성공!", null));
     }
 
@@ -51,10 +51,10 @@ public class UserController {
                 encoding = @Encoding(name = "profileUpdateDto",
                     contentType = "application/json")))
     public ResponseEntity<ApiResponse<Void>> updateProfile(
-            @AuthenticationPrincipal String id,
+            @AuthenticationPrincipal Long userId,
             @RequestPart ProfileUpdateDto profileUpdateDto,
             @RequestPart(required = false)MultipartFile profileImage) {
-        userService.updateProfile(id, profileUpdateDto, profileImage);
+        userService.updateProfile(userId, profileUpdateDto, profileImage);
         return ResponseEntity.ok(ApiResponse.success("프로필 수정 성공!", null));
     }
 

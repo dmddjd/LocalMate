@@ -30,10 +30,10 @@ public class AuthController {
     @DeleteMapping("/withdraw")
     @Operation(summary = "회원 탙퇴", description = "비밀번호 확인 후 회원 탈퇴합니다.")
     public ResponseEntity<ApiResponse<Void>> withdraw(
-        @AuthenticationPrincipal String id,
+        @AuthenticationPrincipal Long userId,
         @RequestBody WithdrawDto withdrawDto
     ){
-        authService.withdraw(id, withdrawDto.getPassword());
+        authService.withdraw(userId, withdrawDto.getPassword());
         return ResponseEntity.ok(ApiResponse.success("회원 탈퇴 성공!", null));
     }
 
@@ -47,11 +47,11 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(summary = "로그아웃", description = "로그아웃 합니다.")
     public ResponseEntity<ApiResponse<Void>> logout(
-            @AuthenticationPrincipal String id,
+            @AuthenticationPrincipal Long userId,
             @RequestHeader("Authorization") String authorization
     ) {
         String accessToken = authorization.substring(7);
-        authService.logout(id, accessToken);
+        authService.logout(userId, accessToken);
         return ResponseEntity.ok(ApiResponse.success("로그아웃 성공!", null));
     }
 

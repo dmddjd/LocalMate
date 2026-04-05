@@ -28,13 +28,13 @@ public class ChatService {
     private final UserRepository userRepository;
 
     @Transactional
-    public CreateChatRoomResponseDto createChatRoom(String id, Long targetUserId) {
+    public CreateChatRoomResponseDto createChatRoom(Long userId, Long targetUserId) {
 
         // 1. 유저 조회
-        User loginUser = userRepository.findById(id)
+        User loginUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
 
-        User targetUser = userRepository.findById(targetUserId)
+        User targetUser = userRepository.findByUserId(targetUserId)
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
 
         // 2. 기존 채팅방 존재 여부 확인
@@ -66,8 +66,8 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatMsgResponseDto sendMsg(Long chatRoomId, String id, ChatMsgRequestDto dto) {
-        User user = userRepository.findById(id)
+    public ChatMsgResponseDto sendMsg(Long chatRoomId, Long userId, ChatMsgRequestDto dto) {
+        User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 채팅방입니다."));

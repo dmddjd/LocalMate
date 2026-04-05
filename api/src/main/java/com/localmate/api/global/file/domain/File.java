@@ -40,6 +40,10 @@ public class File {
         this.status = FileStatus.ACTIVE;
     }
 
+    public String getPath() {
+        return fileType.getFilePath(changeName);
+    }
+
     public void delete() {
         this.status = FileStatus.DELETED;
     }

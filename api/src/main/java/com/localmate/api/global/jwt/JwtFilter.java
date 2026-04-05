@@ -46,7 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         // 6. id, role 추출
-        String userId = jwtUtil.getId(token);
+        Long userId = jwtUtil.getUserId(token);
         String role = jwtUtil.getRole(token);
 
         // 7. SecurityContext에 Authentication 등록

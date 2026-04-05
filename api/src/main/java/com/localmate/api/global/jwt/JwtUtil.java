@@ -3,14 +3,12 @@ package com.localmate.api.global.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Date;
 
 @Component
@@ -27,12 +25,12 @@ public class JwtUtil {
     }
 
     // Access Token 생성
-    public String createAccessToken(String id, String role) {
+    public String createAccessToken(Long userId, String role) {
         long expiredMs = 1000 * 60 * 30; // 30분
 
         return Jwts.builder()
                 .claim("category", "access")
-                .claim("id", id)
+                .claim("userId", userId)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
@@ -41,12 +39,12 @@ public class JwtUtil {
     }
 
     // Refresh Token 생성
-    public String createRefreshToken(String id) {
+    public String createRefreshToken(Long userId) {
         long expiredMs = 1000 * 60 * 60 * 24 * 7; // 7일
 
         return Jwts.builder()
                 .claim("category", "refresh")
-                .claim("id", id)
+                .claim("userId", userId)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
                 .signWith(secretKey)
@@ -78,12 +76,12 @@ public class JwtUtil {
     // Refresh Token 만료
     public Long getExpiration(String token) {
         Date expiration = getClaims(token).getExpiration();
-        return (expiration.getTime() - System.currentTimeMillis() / 1000);
+        return (expiration.getTime() - System.currentTimeMillis()) / 1000;
     }
 
-    // id 추출
-    public String getId(String token) {
-        return getClaims(token).get("id", String.class);
+    // userId 추출
+    public Long getUserId(String token) {
+        return getClaims(token).get("userId", Long.class);
     }
 
     // role 추출
