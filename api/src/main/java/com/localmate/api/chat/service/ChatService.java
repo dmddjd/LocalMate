@@ -75,6 +75,13 @@ public class ChatService {
         ChatMsg chatMsg = new ChatMsg(chatRoom, user, dto.getContent());
         chatMsgRepository.save(chatMsg);
 
+        String lastMsgContent = switch (chatMsg.getMsgType()) {
+            case TEXT -> dto.getContent();
+            case IMAGE -> "사진을 보냈습니다.";
+            case VIDEO -> "동영상을 보냈습니다.";
+        };
+        chatRoom.updateLastMsg(lastMsgContent);
+
         return new ChatMsgResponseDto(chatMsg);
     }
 }

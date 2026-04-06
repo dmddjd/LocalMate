@@ -16,11 +16,8 @@ public class ChatRoom {
     @Column(nullable = false)
     private LocalDateTime createDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "last_msg_id")
-    private ChatMsg lastMsg;
+    private String lastMsgContent;
 
-    @Column
     private LocalDateTime lastMsgDate;
 
     @Column(nullable = false)
@@ -30,5 +27,10 @@ public class ChatRoom {
     @PrePersist
     public void prePersist() {
         this.createDate = LocalDateTime.now();
+    }
+
+    public void updateLastMsg(String lastMsgContent) {
+        this.lastMsgContent = lastMsgContent;
+        this.lastMsgDate = LocalDateTime.now();
     }
 }

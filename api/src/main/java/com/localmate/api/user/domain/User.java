@@ -92,6 +92,11 @@ public class User {
         this.withdrawDate = LocalDateTime.now();
     }
 
+    public void restore() {
+        this.status = Status.ACTIVE;
+        this.withdrawDate = null;
+    }
+
     public void updatePassword(String newPassword) {
         this.password = newPassword;
     }

@@ -28,6 +28,8 @@ public class File {
     @Enumerated(EnumType.STRING)
     private FileStatus status;
 
+    private LocalDateTime deletedDate;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private FileType fileType;
@@ -46,5 +48,6 @@ public class File {
 
     public void delete() {
         this.status = FileStatus.DELETED;
+        this.deletedDate = LocalDateTime.now();
     }
 }

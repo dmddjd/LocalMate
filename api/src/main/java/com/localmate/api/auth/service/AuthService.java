@@ -1,14 +1,12 @@
 package com.localmate.api.auth.service;
 
+import com.localmate.api.auth.dto.*;
 import com.localmate.api.global.exception.CustomException;
 import com.localmate.api.global.jwt.JwtUtil;
 import com.localmate.api.global.redis.RedisUtil;
 import com.localmate.api.user.domain.Profile;
+import com.localmate.api.user.domain.Status;
 import com.localmate.api.user.domain.User;
-import com.localmate.api.auth.dto.FindIdDto;
-import com.localmate.api.auth.dto.LoginDto;
-import com.localmate.api.auth.dto.ResetPasswordDto;
-import com.localmate.api.auth.dto.SignupDto;
 import com.localmate.api.user.repository.ProfileRepository;
 import com.localmate.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +32,7 @@ public class AuthService {
     private final RedisUtil redisUtil;
 
     public void signup(SignupDto signupDto) {
-        if (!emailService.isVerified(signupDto.getEmail())) {
+        if (!emailService.isSignupVerified(signupDto.getEmail())) {
             throw new CustomException(HttpStatus.UNAUTHORIZED, "이메일 인증이 완료되지 않았습니다.");
         }
 
@@ -45,7 +43,7 @@ public class AuthService {
 
         User user = userRepository.save(createUserEntity(signupDto));
         profileRepository.save(new Profile(user));
-        emailService.removeVerified(signupDto.getEmail());
+        emailService.removeSignupVerified(signupDto.getEmail());
     }
 
     private User createUserEntity(SignupDto signupDto) {
@@ -75,12 +73,28 @@ public class AuthService {
         user.withdraw();
     }
 
+    public void restore(RestoreAccountDto restoreAccountDto) {
+        if (!emailService.isRestoreVerified(restoreAccountDto.getEmail())) {
+            throw new CustomException(HttpStatus.UNAUTHORIZED, "이메일 인증이 완료되지 않았습니다.");
+        }
+
+        User user = userRepository.findById(restoreAccountDto.getId()).orElseThrow(() ->
+                new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 아이디 입니다."));
+
+        user.restore();
+        emailService.removeRestoreVerified(restoreAccountDto.getEmail());
+    }
+
     public Map<String, String> login(LoginDto loginDto) {
         User user = userRepository.findById(loginDto.getId())
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 아이디입니다."));
 
         if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
             throw new CustomException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
+        }
+
+        if (user.getStatus() == Status.DELETE) {
+            throw new CustomException(HttpStatus.FORBIDDEN, "탈퇴한 계정입니다. 30일 이내로 복구 가능합니다.");
         }
 
         String accessToken = jwtUtil.createAccessToken(user.getUserId(), user.getRole().name());
@@ -106,8 +120,14 @@ public class AuthService {
     }
 
     public String findId(FindIdDto findIdDto) {
+        if (!emailService.isFindIdVerified(findIdDto.getEmail())) {
+            throw new CustomException(HttpStatus.UNAUTHORIZED, "이메일 인증이 완료되지 않았습니다.");
+        }
+
         User user = userRepository.findByUserNameAndEmail(findIdDto.getUserName(), findIdDto.getEmail())
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "일치하는 사용자를 찾을 수 없습니다."));
+
+        emailService.removeFindIdVerified(findIdDto.getEmail());
         return user.getId();
     }
 
@@ -122,5 +142,4 @@ public class AuthService {
         user.updatePassword(passwordEncoder.encode(resetPasswordDto.getNewPassword()));
         emailService.removePasswordResetVerified(resetPasswordDto.getEmail());
     }
-
 }
