@@ -75,4 +75,11 @@ public class AuthController {
         authService.resetPassword(resetPasswordDto);
         return ResponseEntity.ok(ApiResponse.success("비밀번호가 재설정되었습니다.", null));
     }
+
+    @PostMapping("/reissue")
+    @Operation(summary = "토큰 재발급", description = "Refresh Token으로 Access Token을 재발급합니다.")
+    public ResponseEntity<ApiResponse<Map<String, String>>> reissue(@RequestHeader("Authorization") String authorization) {
+        String refreshToken = authorization.substring(7);
+        return ResponseEntity.ok(ApiResponse.success("토큰 재발급 성공.", authService.reissue(refreshToken)));
+    }
 }

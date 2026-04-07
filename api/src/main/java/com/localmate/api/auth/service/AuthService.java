@@ -81,6 +81,10 @@ public class AuthService {
         User user = userRepository.findById(restoreAccountDto.getId()).orElseThrow(() ->
                 new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 아이디 입니다."));
 
+        if (user.getStatus() != Status.DELETE) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "탈퇴한 계정이 아닙니다.");
+        }
+
         user.restore();
         emailService.removeRestoreVerified(restoreAccountDto.getEmail());
     }
@@ -110,13 +114,10 @@ public class AuthService {
     }
 
     public void logout(Long userId, String accessToken) {
-        // refresh token 삭제
         redisUtil.deleteData(userId.toString());
 
-        // access token 블랙리스트 등록
         Long expiration = jwtUtil.getExpiration(accessToken);
         redisUtil.setDataExpire("BlackList:" + accessToken, "logout", expiration);
-
     }
 
     public String findId(FindIdDto findIdDto) {
@@ -141,5 +142,32 @@ public class AuthService {
 
         user.updatePassword(passwordEncoder.encode(resetPasswordDto.getNewPassword()));
         emailService.removePasswordResetVerified(resetPasswordDto.getEmail());
+    }
+
+    public Map<String, String> reissue(String refreshToken) {
+        if (!jwtUtil.validateRefreshToken(refreshToken)) {
+            throw new CustomException(HttpStatus.UNAUTHORIZED, "유효하지 않은 Refresh Token입니다.");
+        }
+
+        Long userId = jwtUtil.getUserId(refreshToken);
+
+        String savedToken = redisUtil.getData(userId.toString());
+        if (savedToken == null || !savedToken.equals(refreshToken)) {
+            throw new CustomException(HttpStatus.UNAUTHORIZED, "Refresh Token이 일치하지 않습니다.");
+        }
+
+        User user = userRepository.findByUserId(userId).orElseThrow(() ->
+                new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
+
+        String newAccessToken = jwtUtil.createAccessToken(userId, user.getRole().name());
+        String newRefreshToken = jwtUtil.createRefreshToken(userId);
+
+        redisUtil.setDataExpire(userId.toString(), newRefreshToken, 60 * 60 * 24 * 7L);
+
+        Map<String, String> tokenMap = new HashMap<>();
+        tokenMap.put("accessToken", newAccessToken);
+        tokenMap.put("refreshToken", newRefreshToken);
+
+        return tokenMap;
     }
 }

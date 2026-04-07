@@ -24,6 +24,8 @@ public class ChatRoom {
     @Enumerated(EnumType.STRING)
     private ChatRoomStatus status = ChatRoomStatus.ACTIVE;
 
+    private LocalDateTime deleteDate;
+
     @PrePersist
     public void prePersist() {
         this.createDate = LocalDateTime.now();
@@ -32,5 +34,10 @@ public class ChatRoom {
     public void updateLastMsg(String lastMsgContent) {
         this.lastMsgContent = lastMsgContent;
         this.lastMsgDate = LocalDateTime.now();
+    }
+
+    public void close() {
+        this.status = ChatRoomStatus.DELETED;
+        this.deleteDate = LocalDateTime.now();
     }
 }

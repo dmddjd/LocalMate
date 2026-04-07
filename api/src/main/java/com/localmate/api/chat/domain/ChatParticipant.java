@@ -26,7 +26,7 @@ public class ChatParticipant {
 
     private LocalDateTime lastReadDate;
 
-    private LocalDateTime exitDate;
+    private LocalDateTime leaveDate;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -41,5 +41,10 @@ public class ChatParticipant {
     public void updateLastRead(Long chatMsgId) {
         this.lastReadMsgId = chatMsgId;
         this.lastReadDate = LocalDateTime.now();
+    }
+
+    public void leave() {
+        this.status = ChatRoomParticipantStatus.LEAVE;
+        this.leaveDate = LocalDateTime.now();
     }
 }

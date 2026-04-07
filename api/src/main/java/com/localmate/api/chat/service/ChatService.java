@@ -1,8 +1,6 @@
 package com.localmate.api.chat.service;
 
-import com.localmate.api.chat.domain.ChatMsg;
-import com.localmate.api.chat.domain.ChatParticipant;
-import com.localmate.api.chat.domain.ChatRoom;
+import com.localmate.api.chat.domain.*;
 import com.localmate.api.chat.dto.ChatMsgRequestDto;
 import com.localmate.api.chat.dto.ChatMsgResponseDto;
 import com.localmate.api.chat.dto.CreateChatRoomResponseDto;
@@ -72,7 +70,12 @@ public class ChatService {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 채팅방입니다."));
 
-        ChatMsg chatMsg = new ChatMsg(chatRoom, user, dto.getContent());
+        if (!chatParticipantRepository.existActiveParticipant(chatRoomId, userId)) {
+            throw new CustomException(HttpStatus.FORBIDDEN, "채팅방 참여자가 아닙니다.");
+        }
+
+        ChatMsgType msgType = dto.getMsgType() != null ? dto.getMsgType() : ChatMsgType.TEXT;
+        ChatMsg chatMsg = new ChatMsg(chatRoom, user, msgType, null, dto.getContent());
         chatMsgRepository.save(chatMsg);
 
         String lastMsgContent = switch (chatMsg.getMsgType()) {
@@ -83,5 +86,20 @@ public class ChatService {
         chatRoom.updateLastMsg(lastMsgContent);
 
         return new ChatMsgResponseDto(chatMsg);
+    }
+
+    @Transactional
+    public String leaveChatRoom(Long chatRoomId, Long userId) {
+        ChatParticipant participant = chatParticipantRepository
+                .findActiveParticipant(chatRoomId, userId)
+                .orElseThrow(() -> new CustomException(HttpStatus.FORBIDDEN, "채팅방 참여자가 아닙니다."));
+
+        participant.leave();
+
+        if (!chatParticipantRepository.existAnyActiveParticipant(chatRoomId)) {
+            participant.getChatRoom().close();
+        }
+
+        return participant.getUser().getNickname();
     }
 }

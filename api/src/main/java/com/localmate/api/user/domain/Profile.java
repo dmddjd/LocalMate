@@ -41,7 +41,9 @@ public class Profile {
     }
 
     public void update(String statusMessage, boolean localMode) {
-        this.statusMessage = statusMessage;
+        if (statusMessage != null) {
+            this.statusMessage = statusMessage;
+        }
         this.localMode = localMode;
     }
 

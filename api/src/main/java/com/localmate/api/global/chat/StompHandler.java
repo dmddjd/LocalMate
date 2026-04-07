@@ -1,10 +1,12 @@
 package com.localmate.api.global.chat;
 
+import com.localmate.api.global.exception.CustomException;
 import com.localmate.api.global.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -32,19 +34,31 @@ public class StompHandler implements ChannelInterceptor {
         // 처음 연결 시(CONNECT)에만 실행
         if(StompCommand.CONNECT.equals(accessor.getCommand())) {
 
-            // 인증 토큰 가져옴
+            // Authorization 헤더 추출
             String token = accessor.getFirstNativeHeader("Authorization");
 
-            // 토큰에서 userId를 꺼내 인증 객체를 만들고 WebSocket session에 저장
-            if (token != null && token.startsWith("Bearer ")) {
-                token = token.substring(7);
-                if(jwtUtil.validateAccessToken(token)) {
-                    Long userId = jwtUtil.getUserId(token);
-                    Authentication auth = new UsernamePasswordAuthenticationToken(userId, null, List.of(new SimpleGrantedAuthority("USER")));
-                    accessor.setUser(auth);
-                }
+            // 토큰이 없거나 Bearer로 시작하지 않으면 연결 차단
+            if (token == null || !token.startsWith("Bearer ")) {
+                throw new MessageDeliveryException("Authorization 헤더가 없습니다.");
             }
+
+            // 토큰만 추출
+            token = token.substring(7);
+
+            // 토큰 유효성 검증 실패 시 연결 차단
+            if (!jwtUtil.validateAccessToken(token)) {
+                throw new MessageDeliveryException("유효하지 않은 토큰입니다.");
+            }
+
+            // 토큰에서 userId 추출
+            Long userId = jwtUtil.getUserId(token);
+
+            // 인증 객체 생성 후 WebSocket 세션에 저장
+            Authentication auth = new UsernamePasswordAuthenticationToken(
+                    userId, null, List.of(new SimpleGrantedAuthority("USER")));
+            accessor.setUser(auth);
         }
+
         return message;
     }
 }

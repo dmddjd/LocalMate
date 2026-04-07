@@ -11,6 +11,7 @@ public class ChatMsgResponseDto {
     private Long chatMsgId;
     private Long userId;
     private String nickname;
+    private String profileImageUrl;
     private String content;
     private ChatMsgType msgType;
     private LocalDateTime sendTime;
@@ -19,6 +20,7 @@ public class ChatMsgResponseDto {
         this.chatMsgId = chatMsg.getChatMsgId();
         this.userId = chatMsg.getUser().getUserId();
         this.nickname = chatMsg.getUser().getNickname();
+        this.profileImageUrl = chatMsg.getUser().getProfile().getProfileImage().getPath();
         this.content = chatMsg.getContent();
         this.msgType = chatMsg.getMsgType();
         this.sendTime = chatMsg.getSendTime();

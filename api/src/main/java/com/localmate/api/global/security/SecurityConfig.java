@@ -44,7 +44,7 @@ public class SecurityConfig {
 
                 // 엔드포인트별 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/ws/**", "/chat-test.html").permitAll()
+                        .requestMatchers("/auth/**", "/ws/**", "/chat-test.html", "/images/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/admin/**").hasAuthority("ADMIN") //  관리자 페이지 경로는 ADMIN 권한 필요
                         .anyRequest().authenticated() // 그 외의 요청은 인증된 사용자만 접근 가능

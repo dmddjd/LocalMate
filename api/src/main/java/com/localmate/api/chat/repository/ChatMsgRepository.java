@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ChatMsgRepository extends JpaRepository<ChatMsg, Long> {
     void deleteAllByUser_UserIdIn(List<Long> targets);
+
+    void deleteAllByChatRoom_ChatRoomIdIn(List<Long> targets);
 }

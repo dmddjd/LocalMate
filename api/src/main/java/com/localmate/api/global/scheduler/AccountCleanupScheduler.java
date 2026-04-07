@@ -1,11 +1,12 @@
 package com.localmate.api.global.scheduler;
 
+import com.localmate.api.chat.domain.ChatRoom;
 import com.localmate.api.chat.repository.ChatMsgRepository;
 import com.localmate.api.chat.repository.ChatParticipantRepository;
+import com.localmate.api.chat.repository.ChatRoomRepository;
 import com.localmate.api.global.file.domain.File;
 import com.localmate.api.global.file.repository.FileRepository;
 import com.localmate.api.user.domain.User;
-import com.localmate.api.user.repository.RecommendationRepository;
 import com.localmate.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AccountCleanupScheduler {
     private final FileRepository fileRepository;
+    private final ChatRoomRepository chatRoomRepository;
     private final ChatMsgRepository chatMsgRepository;
     private final ChatParticipantRepository chatParticipantRepository;
 //    private final RecommendationRepository recommendationRepository;
@@ -72,8 +74,23 @@ public class AccountCleanupScheduler {
 
         fileRepository.deleteAll(targets);
         log.info("만료 파일 {}건 삭제 완료", targets.size());
-
-
     }
 
+    @Scheduled(cron = "0 0 3 * * *")
+    @Transactional
+    public void deleteExpiredChatRooms() {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
+        List<Long> targets = chatRoomRepository.findAllDeletedChatRoom(cutoff)
+                .stream()
+                .map(ChatRoom::getChatRoomId)
+                .toList();
+
+        if (targets.isEmpty()) return;
+
+        chatMsgRepository.deleteAllByChatRoom_ChatRoomIdIn(targets);
+        chatParticipantRepository.deleteAllByChatRoom_ChatRoomIdIn(targets);
+        chatRoomRepository.deleteAllById(targets);
+
+        log.info("만료 채팅방 {}건 삭제 완료", targets.size());
+    }
 }
