@@ -36,6 +36,9 @@ public class Profile {
     @OneToMany(mappedBy = "profile")
     private List<Recommendation> recommendations = new ArrayList<>();
 
+    @Column(nullable = false)
+    private String profileImagePath = "/images/profile-images/default.jpg";
+
     public Profile(User user) {
         this.user = user;
     }
@@ -49,5 +52,6 @@ public class Profile {
 
     public void updateProfileImage(File profileImage) {
         this.profileImage = profileImage;
+        this.profileImagePath = profileImage.getPath();
     }
 }
