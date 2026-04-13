@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>채팅방</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        button { padding: 8px; margin: 4px; }
+        #messages { border: 1px solid #ccc; height: 400px; overflow-y: auto; padding: 10px; margin-top: 10px; }
+        .message { display: flex; align-items: flex-end; gap: 8px; margin: 8px 0; }
+        .message.mine { flex-direction: row-reverse; }
+        .message img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+        .message.mine img { display: none; }
+        .message-body { display: flex; flex-direction: column; max-width: 70%; }
+        .message.mine .message-body { align-items: flex-end; }
+        .nickname { font-size: 12px; font-weight: bold; margin-bottom: 2px; }
+        .message-row { display: flex; align-items: flex-end; gap: 4px; }
+        .message.mine .message-row { flex-direction: row-reverse; }
+        .bubble { background: #f0f0f0; padding: 8px 12px; border-radius: 12px; word-break: break-word; }
+        .message.mine .bubble { background: #fee500; }
+        .unread-count { font-size: 11px; color: #f5a623; white-space: nowrap; }
+        .system-msg { text-align: center; color: #999; font-size: 13px; margin: 8px 0; }
+        .input-area { display: flex; gap: 8px; margin-top: 8px; }
+        .input-area input { flex: 1; padding: 8px; }
+        #header { display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+
+<div id="header">
+    <div>
+        <a href="javascript:history.back()">← 뒤로</a>
+        <strong id="roomTitle" style="margin-left: 12px;">채팅방</strong>
+    </div>
+    <button onclick="leaveRoom()" style="color:red;">나가기</button>
+</div>
+
+<div id="messages"></div>
+
+<div class="input-area">
+    <input type="text" id="content" placeholder="메시지 입력" onkeydown="if(event.key==='Enter') sendMessage()"/>
+    <button onclick="sendMessage()">전송</button>
+</div>
+
+<script>
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token');
+    const chatRoomId = params.get('chatRoomId');
+    const myUserId = getMyUserId(token);
+    let stompClient = null;
+
+    function getMyUserId(token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            return payload.userId;
+        } catch(e) { return null; }
+    }
+
+    window.onload = () => {
+        document.getElementById('roomTitle').textContent = '채팅방 #' + chatRoomId;
+        loadHistory();
+        connectWebSocket();
+    };
+
+    function loadHistory() {
+        fetch(`/chat/${chatRoomId}/messages`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (res.data) {
+                res.data.forEach(msg => addMessage(msg));
+                scrollToBottom();
+            }
+        })
+        .catch(err => console.error('내역 조회 실패:', err));
+    }
+
+    function connectWebSocket() {
+        const socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null;
+
+        stompClient.connect(
+            { Authorization: 'Bearer ' + token },
+            () => {
+                stompClient.subscribe('/topic/chat/' + chatRoomId, message => {
+                    const body = JSON.parse(message.body);
+                    if (body.type === 'READ') {
+                        document.querySelectorAll('.unread-count').forEach(el => el.style.display = 'none');
+                    } else if (body.chatMsgId) {
+                        addMessage(body);
+                        scrollToBottom();
+                    } else {
+                        addSystemMsg(body.content);
+                        scrollToBottom();
+                    }
+                });
+            },
+            err => console.error('WebSocket 연결 실패:', err)
+        );
+    }
+
+    function sendMessage() {
+        const content = document.getElementById('content').value.trim();
+        if (!content || !stompClient) return;
+
+        stompClient.send('/app/send/' + chatRoomId, {}, JSON.stringify({
+            content: content,
+            msgType: 'TEXT'
+        }));
+
+        document.getElementById('content').value = '';
+    }
+
+    function leaveRoom() {
+        if (!confirm('채팅방을 나가시겠습니까?')) return;
+
+        fetch(`/chat/${chatRoomId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(() => location.href = '/chat-rooms.html')
+        .catch(err => alert('나가기 실패: ' + err));
+    }
+
+    function addMessage(msg) {
+        const isMine = msg.userId === myUserId;
+        const div = document.createElement('div');
+        div.className = 'message' + (isMine ? ' mine' : '');
+        div.id = 'msg-' + msg.chatMsgId;
+        div.innerHTML = `
+            <img src="${msg.profileImageUrl || '/images/profile-images/default.png'}"
+                 onerror="this.src='/images/profile-images/default.png'"/>
+            <div class="message-body">
+                ${!isMine ? `<div class="nickname">${msg.nickname}</div>` : ''}
+                <div class="message-row">
+                    <div class="bubble">${msg.content}</div>
+                    ${msg.unreadCount > 0
+                        ? `<div class="unread-count">${msg.unreadCount}</div>`
+                        : ''}
+                </div>
+            </div>
+        `;
+        document.getElementById('messages').appendChild(div);
+    }
+
+    function addSystemMsg(content) {
+        const div = document.createElement('div');
+        div.className = 'system-msg';
+        div.textContent = content;
+        document.getElementById('messages').appendChild(div);
+    }
+
+    function scrollToBottom() {
+        const el = document.getElementById('messages');
+        el.scrollTop = el.scrollHeight;
+    }
+</script>
+</body>
+</html>

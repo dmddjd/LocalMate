@@ -28,4 +28,24 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
             "where cp.chatRoom.chatRoomId = :chatRoomId " +
             "and cp.status = 'JOIN'")
     boolean existAnyActiveParticipant(@Param("chatRoomId") Long chatRoomId);
+
+    @Query("select cp from ChatParticipant cp " +
+            "join fetch cp.chatRoom cr " +
+            "where cp.user.userId = :userId " +
+            "and cp.status = 'JOIN' " +
+            "and cr.status = 'ACTIVE' " +
+            "order by cr.lastMsgDate desc")
+    List<ChatParticipant> findMyParticipation(@Param("userId") Long userId);
+
+    @Query("select cp from ChatParticipant cp " +
+            "join fetch cp.user u " +
+            "join fetch u.profile p " +
+            "where cp.chatRoom.chatRoomId in :chatRoomIds " +
+            "and cp.user.userId != :userId")
+    List<ChatParticipant> findOpponents(@Param("chatRoomIds") List<Long> chatRoomIds, @Param("userId") Long userId);
+
+    @Query("select count(cp) from ChatParticipant cp " +
+            "where cp.chatRoom.chatRoomId = :chatRoomId " +
+            "and cp.status = 'JOIN'")
+    int countActiveParticipants(@Param("chatRoomId") Long chatRoomId);
 }

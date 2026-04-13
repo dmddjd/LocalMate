@@ -5,7 +5,6 @@ import com.localmate.api.chat.service.ChatService;
 import com.localmate.api.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -14,6 +13,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -55,5 +57,23 @@ public class ChatController {
         Long userId = (Long) authentication.getPrincipal();
         ChatMsgResponseDto response = chatService.sendMsg(chatRoomId, userId, dto);
         messagingTemplate.convertAndSend("/topic/chat/" + chatRoomId, response);
+    }
+
+    @GetMapping("/rooms")
+    @Operation(summary = "채팅방 목록 조회")
+    public ResponseEntity<ApiResponse<List<ChatRoomListDto>>> getRooms(@AuthenticationPrincipal Long userId) {
+        return ResponseEntity.ok(ApiResponse.success("채팅방 목록 조회 성공", chatService.getRooms(userId)));
+    }
+
+    @GetMapping("/{chatRoomId}/messages")
+    @Operation(summary = "채팅 내역 조회")
+    public ResponseEntity<ApiResponse<List<ChatMsgResponseDto>>> getMessages(
+            @PathVariable Long chatRoomId,
+            @AuthenticationPrincipal Long userId) {
+        List<ChatMsgResponseDto> messages = chatService.getMessages(chatRoomId, userId);
+
+        messagingTemplate.convertAndSend("/topic/chat/" + chatRoomId, Map.of("type", "READ", "userId", userId));
+
+        return ResponseEntity.ok(ApiResponse.success("채팅 내역 조회 성공", messages));
     }
 }

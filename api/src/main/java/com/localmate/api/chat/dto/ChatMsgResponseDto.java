@@ -15,6 +15,7 @@ public class ChatMsgResponseDto {
     private String content;
     private ChatMsgType msgType;
     private LocalDateTime sendTime;
+    private int unreadCount;
 
     public ChatMsgResponseDto(ChatMsg chatMsg) {
         this.chatMsgId = chatMsg.getChatMsgId();
@@ -24,5 +25,18 @@ public class ChatMsgResponseDto {
         this.content = chatMsg.getContent();
         this.msgType = chatMsg.getMsgType();
         this.sendTime = chatMsg.getSendTime();
+        this.unreadCount = 0;
+    }
+
+    public ChatMsgResponseDto(ChatMsg chatMsg, int unreadCount) {
+        this.chatMsgId = chatMsg.getChatMsgId();
+        this.userId = chatMsg.getUser().getUserId();
+        this.nickname = chatMsg.getUser().getNickname();
+        this.profileImageUrl = chatMsg.getUser().getProfile().getProfileImagePath();
+        this.content = chatMsg.getContent();
+        this.msgType = chatMsg.getMsgType();
+        this.sendTime = chatMsg.getSendTime();
+        this.unreadCount = unreadCount;
+
     }
 }

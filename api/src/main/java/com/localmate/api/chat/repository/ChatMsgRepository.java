@@ -19,4 +19,10 @@ public interface ChatMsgRepository extends JpaRepository<ChatMsg, Long> {
             "and m.status = 'ACTIVE' " +
             "order by m.sendTime asc")
     List<ChatMsg> findAllByChatRoomId(@Param("chatRoomId") Long chatRoomId);
+
+    @Query("select count(m) from ChatMsg m " +
+            "where m.chatRoom.chatRoomId = :chatRoomId " +
+            "and (:lastReadMsgId is null or m.chatMsgId > :lastReadMsgId) " +
+            "and m.status = 'ACTIVE'")
+    int countUnread(@Param("chatRoomId") Long chatRoomId, @Param("lastReadMsgId") Long lastReadMsgId);
 }

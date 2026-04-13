@@ -3,6 +3,7 @@ package com.localmate.api.chat.service;
 import com.localmate.api.chat.domain.*;
 import com.localmate.api.chat.dto.ChatMsgRequestDto;
 import com.localmate.api.chat.dto.ChatMsgResponseDto;
+import com.localmate.api.chat.dto.ChatRoomListDto;
 import com.localmate.api.chat.dto.CreateChatRoomResponseDto;
 import com.localmate.api.chat.repository.ChatMsgRepository;
 import com.localmate.api.chat.repository.ChatParticipantRepository;
@@ -15,7 +16,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -78,6 +82,9 @@ public class ChatService {
         ChatMsg chatMsg = new ChatMsg(chatRoom, user, msgType, null, dto.getContent());
         chatMsgRepository.save(chatMsg);
 
+        chatParticipantRepository.findActiveParticipant(chatRoomId, userId)
+                .ifPresent(p -> p.updateLastRead(chatMsg.getChatMsgId()));
+
         String lastMsgContent = switch (chatMsg.getMsgType()) {
             case TEXT -> dto.getContent();
             case IMAGE -> "사진을 보냈습니다.";
@@ -85,7 +92,8 @@ public class ChatService {
         };
         chatRoom.updateLastMsg(lastMsgContent);
 
-        return new ChatMsgResponseDto(chatMsg);
+        int unreadCount = chatParticipantRepository.countActiveParticipants(chatRoomId) - 1;
+        return new ChatMsgResponseDto(chatMsg, unreadCount);
     }
 
     @Transactional
@@ -101,5 +109,40 @@ public class ChatService {
         }
 
         return participant.getUser().getNickname();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ChatRoomListDto> getRooms(Long userId) {
+        List<ChatParticipant> myParticipations = chatParticipantRepository.findMyParticipation(userId);
+
+        List<Long> chatRoomIds = myParticipations.stream()
+                .map(cp -> cp.getChatRoom().getChatRoomId())
+                .toList();
+
+        Map<Long, ChatParticipant> opponentMap = chatParticipantRepository.findOpponents(chatRoomIds, userId).stream()
+                .collect(Collectors.toMap(cp -> cp.getChatRoom().getChatRoomId(), cp -> cp));
+
+        return myParticipations.stream().map(cp -> {
+            ChatParticipant opponent = opponentMap.get(cp.getChatRoom().getChatRoomId());
+            int unreadCount = chatMsgRepository.countUnread(cp.getChatRoom().getChatRoomId(),cp.getLastReadMsgId());
+            return new ChatRoomListDto(cp.getChatRoom(), opponent, unreadCount);
+        }).toList();
+    }
+
+    @Transactional
+    public List<ChatMsgResponseDto> getMessages(Long chatRoomId, Long userId) {
+        if(!chatParticipantRepository.existActiveParticipant(chatRoomId, userId)) {
+            throw new CustomException(HttpStatus.FORBIDDEN, "채팅방 참여자가 아닙니다.");
+        }
+
+        List<ChatMsg> messages = chatMsgRepository.findAllByChatRoomId(chatRoomId);
+
+        if (!messages.isEmpty()) {
+            ChatParticipant participant = chatParticipantRepository.findActiveParticipant(chatRoomId, userId)
+                    .orElseThrow();
+            participant.updateLastRead(messages.get(messages.size() - 1).getChatMsgId());
+        }
+
+        return messages.stream().map(ChatMsgResponseDto::new).toList();
     }
 }
