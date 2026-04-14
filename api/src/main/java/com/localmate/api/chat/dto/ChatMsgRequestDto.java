@@ -7,4 +7,5 @@ import lombok.Getter;
 public class ChatMsgRequestDto {
     private String content;
     private ChatMsgType msgType;
+    private Long replyToMsgId;
 }

@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum FileType {
     PROFILE("profile-images"),
-    NOTICE("notice-images"),
+    NOTICE("notice-files"),
     CHAT("chat-files");
 
     private final String subDir;

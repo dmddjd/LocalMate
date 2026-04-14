@@ -5,16 +5,18 @@ import com.localmate.api.chat.dto.ChatMsgRequestDto;
 import com.localmate.api.chat.dto.ChatMsgResponseDto;
 import com.localmate.api.chat.dto.ChatRoomListDto;
 import com.localmate.api.chat.dto.CreateChatRoomResponseDto;
-import com.localmate.api.chat.repository.ChatMsgRepository;
-import com.localmate.api.chat.repository.ChatParticipantRepository;
-import com.localmate.api.chat.repository.ChatRoomRepository;
+import com.localmate.api.chat.repository.*;
 import com.localmate.api.global.exception.CustomException;
+import com.localmate.api.global.file.domain.File;
+import com.localmate.api.global.file.domain.FileType;
+import com.localmate.api.global.file.service.FileService;
 import com.localmate.api.user.domain.User;
 import com.localmate.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +28,9 @@ import java.util.stream.Collectors;
 public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMsgRepository chatMsgRepository;
+    private final ChatFileRepository chatFileRepository;
+    private final ChatMsgHistoryRepository chatMsgHistoryRepository;
+    private final FileService fileService;
     private final ChatParticipantRepository chatParticipantRepository;
     private final UserRepository userRepository;
 
@@ -79,21 +84,81 @@ public class ChatService {
         }
 
         ChatMsgType msgType = dto.getMsgType() != null ? dto.getMsgType() : ChatMsgType.TEXT;
-        ChatMsg chatMsg = new ChatMsg(chatRoom, user, msgType, null, dto.getContent());
+
+        ChatMsg replyToMsg = null;
+        if (dto.getReplyToMsgId() != null) {
+            replyToMsg = chatMsgRepository.findById(dto.getReplyToMsgId())
+                    .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "답장 대상 메시지가 존재하지 않습니다."));
+        }
+
+        ChatMsg chatMsg = new ChatMsg(chatRoom, user, msgType, dto.getContent(), replyToMsg);
         chatMsgRepository.save(chatMsg);
 
         chatParticipantRepository.findActiveParticipant(chatRoomId, userId)
                 .ifPresent(p -> p.updateLastRead(chatMsg.getChatMsgId()));
 
-        String lastMsgContent = switch (chatMsg.getMsgType()) {
-            case TEXT -> dto.getContent();
-            case IMAGE -> "사진을 보냈습니다.";
-            case VIDEO -> "동영상을 보냈습니다.";
-        };
-        chatRoom.updateLastMsg(lastMsgContent);
+        chatRoom.updateLastMsg(dto.getContent());
 
         int unreadCount = chatParticipantRepository.countActiveParticipants(chatRoomId) - 1;
         return new ChatMsgResponseDto(chatMsg, unreadCount);
+    }
+
+    @Transactional
+    public ChatMsgResponseDto sendFileMsg(Long chatRoomId, Long userId, List<MultipartFile> files, ChatMsgType msgType, Long replyToMsgId) {
+        User user = userRepository.findByUserId(userId).orElseThrow(() ->
+                new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
+
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(() ->
+                new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 채팅방입니다."));
+
+        if (!chatParticipantRepository.existActiveParticipant(chatRoomId, userId)) {
+            throw new CustomException(HttpStatus.FORBIDDEN, "채팅방 참여자가 아닙니다.");
+        }
+
+        ChatMsg replyToMsg = null;
+        if (replyToMsgId != null) {
+            replyToMsg = chatMsgRepository.findById(replyToMsgId)
+                    .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "답장 대상 메시지가 존재하지 않습니다."));
+        }
+
+        ChatMsg chatMsg = new ChatMsg(chatRoom, user, msgType, replyToMsg);
+        chatMsgRepository.save(chatMsg);
+
+        List<ChatFile> chatFiles = files.stream().map(
+                f -> new ChatFile(chatMsg, fileService.upload(f, FileType.CHAT))).toList();
+
+        chatFileRepository.saveAll(chatFiles);
+
+        chatParticipantRepository.findActiveParticipant(chatRoomId, userId).ifPresent(
+                p -> p.updateLastRead(chatMsg.getChatMsgId()));
+
+        String lastMsgContent = msgType == ChatMsgType.IMAGE ? "사진을 보냈습니다." : "동영상을 보냈습니다.";
+        chatRoom.updateLastMsg(lastMsgContent);
+
+        int unreadCount = chatParticipantRepository.countActiveParticipants(chatRoomId) - 1;
+
+        return new ChatMsgResponseDto(chatMsg, unreadCount, chatFiles);
+    }
+
+    @Transactional
+    public void editMsg(Long chatRoomId, Long chatMsgId, Long userId, String newContent) {
+        ChatMsg chatMsg = chatMsgRepository.findById(chatMsgId).orElseThrow(() ->
+                new CustomException(HttpStatus.NOT_FOUND,"메시지가 존재하지 않습니다."));
+
+        if (!chatMsg.getUser().getUserId().equals(userId)) {
+            throw new CustomException(HttpStatus.FORBIDDEN, "본인의 메시지만 수정할 수 있습니다.");
+        }
+
+        if (!chatMsg.getChatRoom().getChatRoomId().equals(chatRoomId)) {
+            throw new CustomException(HttpStatus.FORBIDDEN, "해당 채팅방의 메시지가 아닙니다.");
+        }
+
+        if (chatMsg.getMsgType() != ChatMsgType.TEXT) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "텍스트 메시지만 수정할 수 있습니다.");
+        }
+
+        chatMsgHistoryRepository.save(new ChatMsgHistory(chatMsg, chatMsg.getContent()));
+        chatMsg.edit(newContent);
     }
 
     @Transactional
@@ -143,6 +208,11 @@ public class ChatService {
             participant.updateLastRead(messages.get(messages.size() - 1).getChatMsgId());
         }
 
-        return messages.stream().map(ChatMsgResponseDto::new).toList();
+        Long opponentLastRead = chatParticipantRepository.findOpponentLastRead(chatRoomId, userId);
+
+        return messages.stream().map(msg -> {
+            int unreadCount = (opponentLastRead == null || opponentLastRead < msg.getChatMsgId()) ? 1 : 0;
+            return new ChatMsgResponseDto(msg, unreadCount);
+        }).toList();
     }
 }

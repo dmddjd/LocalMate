@@ -22,9 +22,16 @@
         .message.mine .bubble { background: #fee500; }
         .unread-count { font-size: 11px; color: #f5a623; white-space: nowrap; }
         .system-msg { text-align: center; color: #999; font-size: 13px; margin: 8px 0; }
-        .input-area { display: flex; gap: 8px; margin-top: 8px; }
-        .input-area input { flex: 1; padding: 8px; }
+        .input-area { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+        .input-area input[type="text"] { flex: 1; padding: 8px; }
+        #file-preview { font-size: 13px; color: #555; display: none; align-items: center; gap: 6px; margin-top: 4px; }
         #header { display: flex; justify-content: space-between; align-items: center; }
+        #context-menu { display: none; position: fixed; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 2px 2px 6px rgba(0,0,0,0.15); z-index: 999; }
+        #context-menu div { padding: 8px 16px; cursor: pointer; font-size: 14px; }
+        #context-menu div:hover { background: #f5f5f5; }
+        #reply-preview { display: none; align-items: center; gap: 8px; background: #f0f0f0; border-left: 3px solid #f5a623; padding: 6px 10px; margin-top: 4px; border-radius: 4px; font-size: 13px; }
+        #reply-preview .reply-text { flex: 1; color: #555; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .reply-quote { background: rgba(0,0,0,0.05); border-left: 3px solid #aaa; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #666; margin-bottom: 4px; }
     </style>
 </head>
 <body>
@@ -39,9 +46,23 @@
 
 <div id="messages"></div>
 
+<div id="context-menu">
+    <div onclick="startReply()">답장</div>
+    <div id="edit-menu-item" onclick="startEdit()" style="display:none;">수정</div>
+</div>
+<div id="reply-preview">
+    <span class="reply-text" id="reply-preview-text"></span>
+    <button onclick="cancelReply()" style="font-size:12px;">✕</button>
+</div>
+<div id="file-preview">
+    <span id="file-name"></span>
+    <button onclick="cancelFile()" style="font-size:12px;">✕</button>
+</div>
 <div class="input-area">
-    <input type="text" id="content" placeholder="메시지 입력" onkeydown="if(event.key==='Enter') sendMessage()"/>
-    <button onclick="sendMessage()">전송</button>
+    <input type="file" id="fileInput" accept="image/*,video/*" multiple style="display:none" onchange="onFileSelected()"/>
+    <button onclick="document.getElementById('fileInput').click()">📎</button>
+    <input type="text" id="content" placeholder="메시지 입력" onkeydown="if(event.key==='Enter') send()"/>
+    <button onclick="send()">전송</button>
 </div>
 
 <script>
@@ -50,6 +71,7 @@
     const chatRoomId = params.get('chatRoomId');
     const myUserId = getMyUserId(token);
     let stompClient = null;
+    let replyToMsg = null;
 
     function getMyUserId(token) {
         try {
@@ -57,6 +79,11 @@
             return payload.userId;
         } catch(e) { return null; }
     }
+
+    // 컨텍스트 메뉴 닫기
+    document.addEventListener('click', () => {
+        document.getElementById('context-menu').style.display = 'none';
+    });
 
     window.onload = () => {
         document.getElementById('roomTitle').textContent = '채팅방 #' + chatRoomId;
@@ -89,7 +116,21 @@
                 stompClient.subscribe('/topic/chat/' + chatRoomId, message => {
                     const body = JSON.parse(message.body);
                     if (body.type === 'READ') {
-                        document.querySelectorAll('.unread-count').forEach(el => el.style.display = 'none');
+                        if (body.userId !== myUserId) {
+                            document.querySelectorAll('.unread-count').forEach(el => el.style.display = 'none');
+                        }
+                    } else if (body.type === 'EDIT') {
+                        const msgEl = document.getElementById('msg-' + body.chatMsgId);
+                        if (msgEl) {
+                            const bubble = msgEl.querySelector('.bubble');
+                            const replyQuoteHtml = bubble.dataset.replyQuote !== undefined
+                                ? bubble.dataset.replyQuote
+                                : (bubble.querySelector('.reply-quote')?.outerHTML || '');
+                            bubble.innerHTML = replyQuoteHtml + escapeHtml(body.content) +
+                                ' <span style="font-size:11px; color:#999;">(수정됨)</span>';
+                            bubble.dataset.content = body.content;
+                            bubble.dataset.replyQuote = replyQuoteHtml;
+                        }
                     } else if (body.chatMsgId) {
                         addMessage(body);
                         scrollToBottom();
@@ -103,16 +144,75 @@
         );
     }
 
+    function onFileSelected() {
+        const files = document.getElementById('fileInput').files;
+        if (!files.length) return;
+        const names = Array.from(files).map(f => f.name).join(', ');
+        document.getElementById('file-name').textContent = `${files.length}개: ${names}`;
+        document.getElementById('file-preview').style.display = 'flex';
+        document.getElementById('content').disabled = true;
+        document.getElementById('content').placeholder = '파일 전송 중에는 텍스트를 입력할 수 없습니다.';
+    }
+
+    function cancelFile() {
+        document.getElementById('fileInput').value = '';
+        document.getElementById('file-preview').style.display = 'none';
+        document.getElementById('content').disabled = false;
+        document.getElementById('content').placeholder = '메시지 입력';
+    }
+
+    function send() {
+        const files = document.getElementById('fileInput').files;
+        if (files.length > 0) {
+            sendFile(files);
+        } else {
+            sendMessage();
+        }
+    }
+
+    function startReply() {
+        const menu = document.getElementById('context-menu');
+        menu.style.display = 'none';
+        document.getElementById('reply-preview').style.display = 'flex';
+        document.getElementById('reply-preview-text').textContent =
+            `${replyToMsg.nickname}: ${replyToMsg.content || '파일'}`;
+        document.getElementById('content').focus();
+    }
+
+    function cancelReply() {
+        replyToMsg = null;
+        document.getElementById('reply-preview').style.display = 'none';
+        document.getElementById('reply-preview-text').textContent = '';
+    }
+
     function sendMessage() {
         const content = document.getElementById('content').value.trim();
         if (!content || !stompClient) return;
 
         stompClient.send('/app/send/' + chatRoomId, {}, JSON.stringify({
             content: content,
-            msgType: 'TEXT'
+            msgType: 'TEXT',
+            replyToMsgId: replyToMsg ? replyToMsg.chatMsgId : null
         }));
 
         document.getElementById('content').value = '';
+        cancelReply();
+    }
+
+    function sendFile(files) {
+        const msgType = files[0].type.startsWith('video/') ? 'VIDEO' : 'IMAGE';
+        const formData = new FormData();
+        Array.from(files).forEach(f => formData.append('files', f));
+        formData.append('msgType', msgType);
+        if (replyToMsg) formData.append('replyToMsgId', replyToMsg.chatMsgId);
+
+        fetch(`/chat/${chatRoomId}/file`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token },
+            body: formData
+        })
+        .then(() => cancelFile())
+        .catch(err => alert('파일 전송 실패: ' + err));
     }
 
     function leaveRoom() {
@@ -137,13 +237,37 @@
             <div class="message-body">
                 ${!isMine ? `<div class="nickname">${msg.nickname}</div>` : ''}
                 <div class="message-row">
-                    <div class="bubble">${msg.content}</div>
-                    ${msg.unreadCount > 0
+                    <div class="bubble">
+                        ${msg.replyToNickname ? `
+                            <div class="reply-quote">${msg.replyToNickname}: ${msg.replyToContent || '파일'}</div>
+                        ` : ''}
+                        ${msg.fileUrls && msg.fileUrls.length > 0
+                            ? msg.fileUrls.map(url =>
+                                msg.msgType === 'VIDEO'
+                                    ? `<video src="${url}" controls style="max-width:200px; display:block; margin:2px 0;"></video>`
+                                    : `<img src="${url}" style="max-width:200px; display:block; margin:2px 0; border-radius:8px;"/>`
+                              ).join('')
+                            : escapeHtml(msg.content || '') + (msg.edited ? ' <span style="font-size:11px; color:#999;">(수정됨)</span>' : '')}
+                    </div>
+                    ${isMine && msg.unreadCount > 0
                         ? `<div class="unread-count">${msg.unreadCount}</div>`
                         : ''}
                 </div>
             </div>
         `;
+
+        // 우클릭 시 컨텍스트 메뉴
+        div.querySelector('.bubble').addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            replyToMsg = msg;
+            document.getElementById('edit-menu-item').style.display =
+                (isMine && msg.msgType === 'TEXT') ? 'block' : 'none';
+            const menu = document.getElementById('context-menu');
+            menu.style.display = 'block';
+            menu.style.left = e.clientX + 'px';
+            menu.style.top = e.clientY + 'px';
+        });
+
         document.getElementById('messages').appendChild(div);
     }
 
@@ -152,6 +276,56 @@
         div.className = 'system-msg';
         div.textContent = content;
         document.getElementById('messages').appendChild(div);
+    }
+
+    function startEdit() {
+        document.getElementById('context-menu').style.display = 'none';
+        const msgEl = document.getElementById('msg-' + replyToMsg.chatMsgId);
+        const bubble = msgEl.querySelector('.bubble');
+        bubble.dataset.original = bubble.innerHTML;
+        bubble.dataset.replyQuote = bubble.querySelector('.reply-quote')?.outerHTML || '';
+
+        const currentContent = bubble.dataset.content !== undefined
+            ? bubble.dataset.content
+            : replyToMsg.content || '';
+
+        bubble.innerHTML = `
+            <input type="text" id="edit-input" value="${escapeHtml(currentContent)}"
+                style="width:100%; padding:4px; box-sizing:border-box; border-radius:6px; border:1px solid #ccc;"/>
+            <div style="margin-top:4px; display:flex; gap:4px; justify-content:flex-end;">
+                <button onclick="saveEdit(${replyToMsg.chatMsgId})" style="font-size:12px;">저장</button>
+                <button onclick="cancelEdit(${replyToMsg.chatMsgId})" style="font-size:12px;">취소</button>
+            </div>
+        `;
+        document.getElementById('edit-input').focus();
+    }
+
+    function cancelEdit(chatMsgId) {
+        const msgEl = document.getElementById('msg-' + chatMsgId);
+        const bubble = msgEl.querySelector('.bubble');
+        bubble.innerHTML = bubble.dataset.original;
+        delete bubble.dataset.original;
+    }
+
+    function saveEdit(chatMsgId) {
+        const newContent = document.getElementById('edit-input').value.trim();
+        if (!newContent) return;
+
+        fetch(`/chat/${chatRoomId}/messages/${chatMsgId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content: newContent })
+        })
+        .catch(err => alert('수정 실패: ' + err));
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
     }
 
     function scrollToBottom() {

@@ -1,9 +1,8 @@
 package com.localmate.api.global.scheduler;
 
+import com.localmate.api.chat.domain.ChatMsgHistory;
 import com.localmate.api.chat.domain.ChatRoom;
-import com.localmate.api.chat.repository.ChatMsgRepository;
-import com.localmate.api.chat.repository.ChatParticipantRepository;
-import com.localmate.api.chat.repository.ChatRoomRepository;
+import com.localmate.api.chat.repository.*;
 import com.localmate.api.global.file.domain.File;
 import com.localmate.api.global.file.repository.FileRepository;
 import com.localmate.api.user.domain.User;
@@ -26,8 +25,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AccountCleanupScheduler {
     private final FileRepository fileRepository;
+    private final ChatFileRepository chatFileRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMsgRepository chatMsgRepository;
+    private final ChatMsgHistoryRepository chatMsgHistoryRepository;
     private final ChatParticipantRepository chatParticipantRepository;
 //    private final RecommendationRepository recommendationRepository;
     private final UserRepository userRepository;
@@ -46,12 +47,34 @@ public class AccountCleanupScheduler {
 
         if(targets.isEmpty()) return;
 
+        chatMsgHistoryRepository.deleteAllByChatMsg_User_UserIdIn(targets);
+        chatFileRepository.deleteAllByChatMsg_User_UserIdIn(targets);
         chatMsgRepository.deleteAllByUser_UserIdIn(targets);
         chatParticipantRepository.deleteAllByUser_UserIdIn(targets);
 //        recommendationRepository.deleteAllByUser_UserIdIn(targets);
         userRepository.deleteAllById(targets);
 
         log.info("탈퇴 계정 {}건 삭제 완료", targets.size());
+    }
+
+    @Scheduled(cron = "0 0 3 * * *")
+    @Transactional
+    public void deleteExpiredChatRooms() {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
+        List<Long> targets = chatRoomRepository.findAllDeletedChatRoom(cutoff)
+                .stream()
+                .map(ChatRoom::getChatRoomId)
+                .toList();
+
+        if (targets.isEmpty()) return;
+
+        chatMsgHistoryRepository.deleteAllByChatMsg_ChatRoom_ChatRoomIdIn(targets);
+        chatFileRepository.deleteAllByChatMsg_ChatRoom_ChatRoomIdIn(targets);
+        chatMsgRepository.deleteAllByChatRoom_ChatRoomIdIn(targets);
+        chatParticipantRepository.deleteAllByChatRoom_ChatRoomIdIn(targets);
+        chatRoomRepository.deleteAllById(targets);
+
+        log.info("만료 채팅방 {}건 삭제 완료", targets.size());
     }
 
     @Scheduled(cron = "0 0 3 * * *")
@@ -74,23 +97,5 @@ public class AccountCleanupScheduler {
 
         fileRepository.deleteAll(targets);
         log.info("만료 파일 {}건 삭제 완료", targets.size());
-    }
-
-    @Scheduled(cron = "0 0 3 * * *")
-    @Transactional
-    public void deleteExpiredChatRooms() {
-        LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
-        List<Long> targets = chatRoomRepository.findAllDeletedChatRoom(cutoff)
-                .stream()
-                .map(ChatRoom::getChatRoomId)
-                .toList();
-
-        if (targets.isEmpty()) return;
-
-        chatMsgRepository.deleteAllByChatRoom_ChatRoomIdIn(targets);
-        chatParticipantRepository.deleteAllByChatRoom_ChatRoomIdIn(targets);
-        chatRoomRepository.deleteAllById(targets);
-
-        log.info("만료 채팅방 {}건 삭제 완료", targets.size());
     }
 }

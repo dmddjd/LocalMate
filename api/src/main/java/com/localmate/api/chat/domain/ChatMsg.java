@@ -1,12 +1,13 @@
 package com.localmate.api.chat.domain;
 
-import com.localmate.api.global.file.domain.File;
 import com.localmate.api.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -27,11 +28,16 @@ public class ChatMsg {
     @Enumerated(EnumType.STRING)
     private ChatMsgType msgType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "file_id")
-    private File file;
+    @OneToMany(mappedBy = "chatMsg")
+    private List<ChatFile> chatFiles = new ArrayList<>();
 
     private String content;
+
+    private boolean edited = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reply_to_msg_id")
+    private ChatMsg replyToMsg;
 
     @Column(nullable = false)
     private LocalDateTime sendTime;
@@ -40,31 +46,28 @@ public class ChatMsg {
     @Enumerated(EnumType.STRING)
     private ChatMsgStatus status;
 
-    public ChatMsg(ChatRoom chatRoom, User user, ChatMsgType msgType, File file, String content) {
+    // 텍스트용
+    public ChatMsg(ChatRoom chatRoom, User user, ChatMsgType msgType, String content, ChatMsg replyToMsg) {
         this.chatRoom = chatRoom;
         this.user = user;
         this.msgType = msgType;
-        this.file = file;
         this.content = content;
+        this.replyToMsg = replyToMsg;
         this.status = ChatMsgStatus.ACTIVE;
     }
 
-    public ChatMsg(ChatRoom chatRoom, User user, String content) {
-        this.chatRoom = chatRoom;
-        this.user = user;
-        this.msgType = ChatMsgType.TEXT;
-        this.content = content;
-        this.sendTime = LocalDateTime.now();
-        this.status = ChatMsgStatus.ACTIVE;
-    }
-
-    public ChatMsg(ChatRoom chatRoom, User user, ChatMsgType msgType, File file) {
+    // 파일용
+    public ChatMsg(ChatRoom chatRoom, User user, ChatMsgType msgType, ChatMsg replyToMsg) {
         this.chatRoom = chatRoom;
         this.user = user;
         this.msgType = msgType;
-        this.file = file;
-        this.sendTime = LocalDateTime.now();
+        this.replyToMsg = replyToMsg;
         this.status = ChatMsgStatus.ACTIVE;
+    }
+
+    public void edit(String newContent) {
+        this.content = newContent;
+        this.edited = true;
     }
 
     @PrePersist

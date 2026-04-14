@@ -12,9 +12,13 @@ public interface ChatMsgRepository extends JpaRepository<ChatMsg, Long> {
 
     void deleteAllByChatRoom_ChatRoomIdIn(List<Long> targets);
 
-    @Query("select m from ChatMsg m " +
+    @Query("select distinct m from ChatMsg m " +
             "join fetch m.user u " +
             "join fetch u.profile p " +
+            "left join fetch m.chatFiles cf " +
+            "left join fetch cf.file " +
+            "left join fetch m.replyToMsg r " +
+            "left join fetch r.user re " +
             "where m.chatRoom.chatRoomId = :chatRoomId " +
             "and m.status = 'ACTIVE' " +
             "order by m.sendTime asc")

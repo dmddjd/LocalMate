@@ -1,5 +1,6 @@
 package com.localmate.api.chat.controller;
 
+import com.localmate.api.chat.domain.ChatMsgType;
 import com.localmate.api.chat.dto.*;
 import com.localmate.api.chat.service.ChatService;
 import com.localmate.api.global.response.ApiResponse;
@@ -13,6 +14,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -57,6 +59,35 @@ public class ChatController {
         Long userId = (Long) authentication.getPrincipal();
         ChatMsgResponseDto response = chatService.sendMsg(chatRoomId, userId, dto);
         messagingTemplate.convertAndSend("/topic/chat/" + chatRoomId, response);
+    }
+
+    @PostMapping("/{chatRoomId}/file")
+    @Operation(summary = "파일 전송")
+    public ResponseEntity<ApiResponse<Void>> sendFileMsg(
+            @PathVariable Long chatRoomId,
+            @RequestParam("files") List<MultipartFile> files,
+            @RequestParam("msgType") ChatMsgType msgType,
+            @RequestParam(value = "replyToMsgId", required = false) Long replyToMsgId,
+            @AuthenticationPrincipal Long userId
+            ) {
+        ChatMsgResponseDto response = chatService.sendFileMsg(chatRoomId, userId, files, msgType, replyToMsgId);
+        messagingTemplate.convertAndSend("/topic/chat/" + chatRoomId, response);
+        return ResponseEntity.ok(ApiResponse.success("파일 전송 성공", null));
+    }
+
+    @PutMapping("/{chatRoomId}/messages/{chatMsgId}")
+    @Operation(summary = "채팅 메세지 수정")
+    public ResponseEntity<ApiResponse<Void>> editMsg(
+            @PathVariable Long chatRoomId,
+            @PathVariable Long chatMsgId,
+            @RequestBody ChatMsgEditRequestDto request,
+            @AuthenticationPrincipal Long userId
+    ) {
+        chatService.editMsg(chatRoomId, chatMsgId, userId, request.getContent());
+        messagingTemplate.convertAndSend("/topic/chat/" + chatRoomId,
+                Map.of("type", "EDIT", "chatMsgId", chatMsgId, "content", request.getContent()));
+
+        return ResponseEntity.ok(ApiResponse.success("채팅 수정 성공", null));
     }
 
     @GetMapping("/rooms")
