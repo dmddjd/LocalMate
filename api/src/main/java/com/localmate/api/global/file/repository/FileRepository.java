@@ -7,10 +7,14 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface FileRepository extends JpaRepository<File, Long> {
+
+    Optional<File> findByChangeName(String changeName);
+
     @Query("select f from File f " +
-            "where f.status = 'deleted' " +
+            "where f.status = 'DELETED' " +
             "and f.deletedDate < :cutoff")
     List<File> findAllDeletedFile(@Param("cutoff") LocalDateTime cutoff);
 }

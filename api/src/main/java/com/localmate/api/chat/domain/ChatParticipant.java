@@ -26,6 +26,8 @@ public class ChatParticipant {
 
     private LocalDateTime lastReadDate;
 
+    private Long noticeMsgId;
+
     private LocalDateTime leaveDate;
 
     @Column(nullable = false)
@@ -41,6 +43,14 @@ public class ChatParticipant {
     public void updateLastRead(Long chatMsgId) {
         this.lastReadMsgId = chatMsgId;
         this.lastReadDate = LocalDateTime.now();
+    }
+
+    public void setNotice(Long noticeMsgId) {
+        this.noticeMsgId = noticeMsgId;
+    }
+
+    public void clearNotice() {
+        this.noticeMsgId = null;
     }
 
     public void leave() {

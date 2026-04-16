@@ -26,12 +26,18 @@
         .input-area input[type="text"] { flex: 1; padding: 8px; }
         #file-preview { font-size: 13px; color: #555; display: none; align-items: center; gap: 6px; margin-top: 4px; }
         #header { display: flex; justify-content: space-between; align-items: center; }
-        #context-menu { display: none; position: fixed; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 2px 2px 6px rgba(0,0,0,0.15); z-index: 999; }
-        #context-menu div { padding: 8px 16px; cursor: pointer; font-size: 14px; }
-        #context-menu div:hover { background: #f5f5f5; }
+        #context-menu, #notice-context-menu { display: none; position: fixed; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 2px 2px 6px rgba(0,0,0,0.15); z-index: 999; }
+        #context-menu div, #notice-context-menu div { padding: 8px 16px; cursor: pointer; font-size: 14px; }
+        #context-menu div:hover, #notice-context-menu div:hover { background: #f5f5f5; }
+        #notice-bar { display: none; align-items: center; justify-content: space-between; background: #fff8e1; border-left: 3px solid #f5a623; padding: 8px 12px; margin-top: 8px; border-radius: 4px; font-size: 13px; cursor: pointer; }
         #reply-preview { display: none; align-items: center; gap: 8px; background: #f0f0f0; border-left: 3px solid #f5a623; padding: 6px 10px; margin-top: 4px; border-radius: 4px; font-size: 13px; }
         #reply-preview .reply-text { flex: 1; color: #555; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
         .reply-quote { background: rgba(0,0,0,0.05); border-left: 3px solid #aaa; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #666; margin-bottom: 4px; }
+        #image-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center; cursor:zoom-out; }
+        #image-overlay img, #image-overlay video { max-width:90vw; max-height:90vh; border-radius:8px; object-fit:contain; }
+        #file-context-menu { display:none; position:fixed; background:white; border:1px solid #ccc; border-radius:6px; box-shadow:2px 2px 6px rgba(0,0,0,0.15); z-index:999; }
+        #file-context-menu div { padding:8px 16px; cursor:pointer; font-size:14px; }
+        #file-context-menu div:hover { background:#f5f5f5; }
     </style>
 </head>
 <body>
@@ -44,11 +50,29 @@
     <button onclick="leaveRoom()" style="color:red;">나가기</button>
 </div>
 
+<div id="image-overlay" onclick="closeLightbox()"></div>
+
+<div id="file-context-menu">
+    <div onclick="downloadCurrentFile()">다운로드</div>
+</div>
+
+<div id="notice-bar">
+    <span>📌 <span id="notice-text"></span></span>
+</div>
+
 <div id="messages"></div>
+
+<div id="notice-context-menu">
+    <div onclick="viewNotice()">보기</div>
+    <div onclick="deleteNotice()">삭제</div>
+</div>
 
 <div id="context-menu">
     <div onclick="startReply()">답장</div>
     <div id="edit-menu-item" onclick="startEdit()" style="display:none;">수정</div>
+    <div onclick="setNotice()">공지</div>
+    <div id="delete-all-menu-item" onclick="deleteForAll()" style="display:none;">모두에게서 삭제</div>
+    <div onclick="deleteForMe()">나에게서만 삭제</div>
 </div>
 <div id="reply-preview">
     <span class="reply-text" id="reply-preview-text"></span>
@@ -80,14 +104,28 @@
         } catch(e) { return null; }
     }
 
+    let currentFileUrl = null;
+
     // 컨텍스트 메뉴 닫기
     document.addEventListener('click', () => {
         document.getElementById('context-menu').style.display = 'none';
+        document.getElementById('notice-context-menu').style.display = 'none';
+        document.getElementById('file-context-menu').style.display = 'none';
+    });
+
+    // 공지 우클릭
+    document.getElementById('notice-bar').addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const menu = document.getElementById('notice-context-menu');
+        menu.style.display = 'block';
+        menu.style.left = e.clientX + 'px';
+        menu.style.top = e.clientY + 'px';
     });
 
     window.onload = () => {
         document.getElementById('roomTitle').textContent = '채팅방 #' + chatRoomId;
         loadHistory();
+        loadNotice();
         connectWebSocket();
     };
 
@@ -131,6 +169,10 @@
                             bubble.dataset.content = body.content;
                             bubble.dataset.replyQuote = replyQuoteHtml;
                         }
+                    } else if (body.type === 'DELETE') {
+                        document.getElementById('msg-' + body.chatMsgId)?.remove();
+                    } else if (body.type === 'NOTICE_SET') {
+                        showNoticeBar({ chatMsgId: body.chatMsgId, content: body.content });
                     } else if (body.chatMsgId) {
                         addMessage(body);
                         scrollToBottom();
@@ -239,13 +281,13 @@
                 <div class="message-row">
                     <div class="bubble">
                         ${msg.replyToNickname ? `
-                            <div class="reply-quote">${msg.replyToNickname}: ${msg.replyToContent || '파일'}</div>
+                            <div class="reply-quote" style="cursor:pointer;" onclick="scrollToMsg(${msg.replyToMsgId})">${msg.replyToNickname}: ${msg.replyToContent || '파일'}</div>
                         ` : ''}
                         ${msg.fileUrls && msg.fileUrls.length > 0
                             ? msg.fileUrls.map(url =>
                                 msg.msgType === 'VIDEO'
-                                    ? `<video src="${url}" controls style="max-width:200px; display:block; margin:2px 0;"></video>`
-                                    : `<img src="${url}" style="max-width:200px; display:block; margin:2px 0; border-radius:8px;"/>`
+                                    ? `<video src="${url}" controls class="file-media" style="max-width:200px; display:block; margin:2px 0; cursor:zoom-in;"></video>`
+                                    : `<img src="${url}" class="file-media" style="max-width:200px; display:block; margin:2px 0; border-radius:8px; cursor:zoom-in;"/>`
                               ).join('')
                             : escapeHtml(msg.content || '') + (msg.edited ? ' <span style="font-size:11px; color:#999;">(수정됨)</span>' : '')}
                     </div>
@@ -262,6 +304,8 @@
             replyToMsg = msg;
             document.getElementById('edit-menu-item').style.display =
                 (isMine && msg.msgType === 'TEXT') ? 'block' : 'none';
+            document.getElementById('delete-all-menu-item').style.display =
+                isMine ? 'block' : 'none';
             const menu = document.getElementById('context-menu');
             menu.style.display = 'block';
             menu.style.left = e.clientX + 'px';
@@ -269,6 +313,22 @@
         });
 
         document.getElementById('messages').appendChild(div);
+
+        div.querySelectorAll('.file-media').forEach(el => {
+            el.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                openLightbox(el.src, el.tagName.toLowerCase());
+            });
+            el.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                currentFileUrl = new URL(el.src).pathname;
+                const menu = document.getElementById('file-context-menu');
+                menu.style.display = 'block';
+                menu.style.left = e.clientX + 'px';
+                menu.style.top = e.clientY + 'px';
+            });
+        });
     }
 
     function addSystemMsg(content) {
@@ -322,10 +382,124 @@
         .catch(err => alert('수정 실패: ' + err));
     }
 
+    let currentNotice = null;
+
+    function loadNotice() {
+        fetch(`/chat/${chatRoomId}/notice`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(res => res.json())
+        .then(res => { if (res.data) showNoticeBar(res.data); })
+        .catch(err => console.error('공지 조회 실패:', err));
+    }
+
+    function showNoticeBar(notice) {
+        currentNotice = notice;
+        document.getElementById('notice-text').textContent = notice.content;
+        document.getElementById('notice-bar').style.display = 'flex';
+    }
+
+    function hideNoticeBar() {
+        currentNotice = null;
+        document.getElementById('notice-bar').style.display = 'none';
+    }
+
+    function deleteForAll() {
+        document.getElementById('context-menu').style.display = 'none';
+        if (!confirm('모두에게서 삭제하시겠습니까?')) return;
+        const chatMsgId = replyToMsg.chatMsgId;
+        replyToMsg = null;
+        fetch(`/chat/${chatRoomId}/messages/${chatMsgId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .catch(err => alert('삭제 실패: ' + err));
+    }
+
+    function deleteForMe() {
+        document.getElementById('context-menu').style.display = 'none';
+        const chatMsgId = replyToMsg.chatMsgId;
+        replyToMsg = null;
+        fetch(`/chat/${chatRoomId}/messages/${chatMsgId}/me`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(() => document.getElementById('msg-' + chatMsgId)?.remove())
+        .catch(err => alert('삭제 실패: ' + err));
+    }
+
+    function setNotice() {
+        document.getElementById('context-menu').style.display = 'none';
+        fetch(`/chat/${chatRoomId}/notice?chatMsgId=${replyToMsg.chatMsgId}`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .catch(err => alert('공지 설정 실패: ' + err));
+    }
+
+    function viewNotice() {
+        document.getElementById('notice-context-menu').style.display = 'none';
+        if (!currentNotice) return;
+        const msgEl = document.getElementById('msg-' + currentNotice.chatMsgId);
+        if (msgEl) msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function deleteNotice() {
+        document.getElementById('notice-context-menu').style.display = 'none';
+        fetch(`/chat/${chatRoomId}/notice`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(() => hideNoticeBar())
+        .catch(err => alert('공지 삭제 실패: ' + err));
+    }
+
     function escapeHtml(str) {
         const div = document.createElement('div');
         div.textContent = str || '';
         return div.innerHTML;
+    }
+
+    function scrollToMsg(chatMsgId) {
+        const msgEl = document.getElementById('msg-' + chatMsgId);
+        if (msgEl) msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function openLightbox(src, tagName) {
+        const overlay = document.getElementById('image-overlay');
+        overlay.innerHTML = tagName === 'video'
+            ? `<video src="${src}" controls autoplay style="max-width:90vw; max-height:90vh; border-radius:8px;"></video>`
+            : `<img src="${src}" style="max-width:90vw; max-height:90vh; border-radius:8px; object-fit:contain;"/>`;
+        overlay.style.display = 'flex';
+    }
+
+    function closeLightbox() {
+        const overlay = document.getElementById('image-overlay');
+        overlay.style.display = 'none';
+        overlay.innerHTML = '';
+    }
+
+    function downloadCurrentFile() {
+        document.getElementById('file-context-menu').style.display = 'none';
+        if (!currentFileUrl) return;
+
+        fetch(`/chat/files/download?fileUrl=${encodeURIComponent(currentFileUrl)}`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(res => {
+            const disposition = res.headers.get('Content-Disposition') || '';
+            const match = disposition.match(/filename="(.+)"/);
+            const filename = match ? match[1] : currentFileUrl.split('/').pop();
+            return res.blob().then(blob => ({ blob, filename }));
+        })
+        .then(({ blob, filename }) => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        })
+        .catch(err => alert('다운로드 실패: ' + err));
     }
 
     function scrollToBottom() {

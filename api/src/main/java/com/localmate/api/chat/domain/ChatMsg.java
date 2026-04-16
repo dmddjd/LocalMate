@@ -33,6 +33,7 @@ public class ChatMsg {
 
     private String content;
 
+    @Column(nullable = false)
     private boolean edited = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -45,6 +46,8 @@ public class ChatMsg {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private ChatMsgStatus status;
+
+    private LocalDateTime deletedDate;
 
     // 텍스트용
     public ChatMsg(ChatRoom chatRoom, User user, ChatMsgType msgType, String content, ChatMsg replyToMsg) {
@@ -68,6 +71,11 @@ public class ChatMsg {
     public void edit(String newContent) {
         this.content = newContent;
         this.edited = true;
+    }
+
+    public void delete() {
+        this.status = ChatMsgStatus.DELETED;
+        this.deletedDate = LocalDateTime.now();
     }
 
     @PrePersist

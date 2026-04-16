@@ -6,6 +6,9 @@ import com.localmate.api.chat.service.ChatService;
 import com.localmate.api.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -15,7 +18,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriUtils;
 
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -75,6 +81,23 @@ public class ChatController {
         return ResponseEntity.ok(ApiResponse.success("파일 전송 성공", null));
     }
 
+    @GetMapping("/files/download")
+    public ResponseEntity<Resource> downloadFile(
+            @RequestParam String fileUrl,
+            @AuthenticationPrincipal Long userId
+            ) {
+        ChatService.FileDownloadInfo info = chatService.getFileAsResource(fileUrl, userId);
+
+        String encodedName = UriUtils.encode(info.originalName(), StandardCharsets.UTF_8);
+        String contentType = URLConnection.guessContentTypeFromName(info.originalName());
+        if (contentType == null) contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedName)
+                .header(HttpHeaders.CONTENT_TYPE, contentType)
+                .body(info.resource());
+    }
+
     @PutMapping("/{chatRoomId}/messages/{chatMsgId}")
     @Operation(summary = "채팅 메세지 수정")
     public ResponseEntity<ApiResponse<Void>> editMsg(
@@ -88,6 +111,62 @@ public class ChatController {
                 Map.of("type", "EDIT", "chatMsgId", chatMsgId, "content", request.getContent()));
 
         return ResponseEntity.ok(ApiResponse.success("채팅 수정 성공", null));
+    }
+
+    @PostMapping("/{chatRoomId}/notice")
+    @Operation(summary = "채팅 공지")
+    public ResponseEntity<ApiResponse<Void>> setNotice(
+            @PathVariable Long chatRoomId,
+            @RequestParam Long chatMsgId,
+            @AuthenticationPrincipal Long userId
+    ) {
+        ChatNoticeResponseDto notice = chatService.setNotice(chatRoomId, userId, chatMsgId);
+        messagingTemplate.convertAndSend("/topic/chat/" + chatRoomId,
+                Map.of("type", "NOTICE_SET", "chatMsgId", notice.getChatMsgId(), "content", notice.getContent()));
+
+        return ResponseEntity.ok(ApiResponse.success("채팅 공지 성공", null));
+    }
+
+    @GetMapping("/{chatRoomId}/notice")
+    @Operation(summary = "공지 조회")
+    public ResponseEntity<ApiResponse<ChatNoticeResponseDto>> getNotice(
+            @PathVariable Long chatRoomId,
+            @AuthenticationPrincipal Long userId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success("공지 조회 성공", chatService.getNotice(chatRoomId, userId)));
+    }
+
+    @DeleteMapping("/{chatRoomId}/notice")
+    @Operation(summary = "공지 삭제")
+    public ResponseEntity<ApiResponse<Void>> deleteNotice(
+            @PathVariable Long chatRoomId,
+            @AuthenticationPrincipal Long userId
+    ) {
+        chatService.deleteNotice(chatRoomId, userId);
+        return ResponseEntity.ok(ApiResponse.success("공지 삭제 성공", null));
+    }
+
+    @DeleteMapping("/{chatRoomId}/messages/{chatMsgId}")
+    @Operation(summary = "채팅 모두에게서 삭제")
+    public ResponseEntity<ApiResponse<Void>> deleteForAll(
+            @PathVariable Long chatRoomId,
+            @PathVariable Long chatMsgId,
+            @AuthenticationPrincipal Long userId
+    ) {
+        chatService.deleteForAll(chatRoomId, chatMsgId, userId);
+        messagingTemplate.convertAndSend("/topic/chat/" + chatRoomId, Map.of("type", "DELETE", "chatMsgId", chatMsgId));
+        return ResponseEntity.ok(ApiResponse.success("삭제 성공", null));
+    }
+
+    @DeleteMapping("/{chatRoomId}/messages/{chatMsgId}/me")
+    @Operation(summary = "채팅 나에게서만 삭제")
+    public ResponseEntity<ApiResponse<Void>> deleteForMe(
+            @PathVariable Long chatRoomId,
+            @PathVariable Long chatMsgId,
+            @AuthenticationPrincipal Long userId
+    ) {
+        chatService.deleteForMe(chatRoomId, chatMsgId, userId);
+        return ResponseEntity.ok(ApiResponse.success("삭제 성공", null));
     }
 
     @GetMapping("/rooms")
