@@ -63,4 +63,15 @@ public class UserController {
     public ResponseEntity<ApiResponse<List<FindUserDto>>> findUsers(UserSearchDto userSearchDto) {
         return ResponseEntity.ok(ApiResponse.success("현지인 목록 조회 성공!", userService.findUsers(userSearchDto)));
     }
+
+    @PostMapping("/recommend/{toUserId}")
+    @Operation(summary = "사용자 추천", description = "사용자를 추천/비추천 합니다.")
+    public ResponseEntity<ApiResponse<Void>> recommendation(
+            @PathVariable Long toUserId,
+            @AuthenticationPrincipal Long userId
+    ) {
+        userService.recommendation(userId, toUserId);
+        return ResponseEntity.ok(ApiResponse.success("추천 처리 완료", null));
+    }
+
 }

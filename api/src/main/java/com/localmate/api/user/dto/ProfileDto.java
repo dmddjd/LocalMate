@@ -26,6 +26,6 @@ public class ProfileDto {
         this.personalities = profile.getProfilePersonalities().stream()
                 .map(pp -> pp.getPersonality().getPersonalityId())
                 .toList();
-        this.recommendationCount = profile.getRecommendations().size();
+        this.recommendationCount = profile.getRecommendationCount();
     }
 }

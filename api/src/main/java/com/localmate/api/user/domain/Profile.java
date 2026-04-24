@@ -32,9 +32,8 @@ public class Profile {
     @OneToMany(mappedBy = "profile")
     private List<ProfilePersonality> profilePersonalities = new ArrayList<>();
 
-    @BatchSize(size = 100)
-    @OneToMany(mappedBy = "profile")
-    private List<Recommendation> recommendations = new ArrayList<>();
+    @Column(nullable = false, columnDefinition = "int default 0")
+    private int recommendationCount = 0;
 
     @Column(nullable = false)
     private String profileImagePath = "/images/profile-images/default.jpg";
@@ -53,5 +52,13 @@ public class Profile {
     public void updateProfileImage(File profileImage) {
         this.profileImage = profileImage;
         this.profileImagePath = profileImage.getPath();
+    }
+
+    public void addRecommendation() {
+        this.recommendationCount++;
+    }
+
+    public void cancelRecommendation() {
+        this.recommendationCount--;
     }
 }

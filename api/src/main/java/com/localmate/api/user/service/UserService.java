@@ -4,19 +4,13 @@ import com.localmate.api.global.exception.CustomException;
 import com.localmate.api.global.file.domain.File;
 import com.localmate.api.global.file.domain.FileType;
 import com.localmate.api.global.file.service.FileService;
+import com.localmate.api.user.domain.*;
 import com.localmate.api.user.dto.FindUserDto;
 import com.localmate.api.user.dto.UserSearchDto;
-import com.localmate.api.user.domain.Personality;
-import com.localmate.api.user.domain.Profile;
-import com.localmate.api.user.domain.ProfilePersonality;
-import com.localmate.api.user.domain.User;
 import com.localmate.api.user.dto.ProfileDto;
 import com.localmate.api.user.dto.ProfileUpdateDto;
 import com.localmate.api.user.dto.UserUpdateDto;
-import com.localmate.api.user.repository.PersonalityRepository;
-import com.localmate.api.user.repository.ProfilePersonalityRepository;
-import com.localmate.api.user.repository.ProfileRepository;
-import com.localmate.api.user.repository.UserRepository;
+import com.localmate.api.user.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -34,6 +29,7 @@ public class UserService {
     private final ProfileRepository profileRepository;
     private final PersonalityRepository personalityRepository;
     private final ProfilePersonalityRepository profilePersonalityRepository;
+    private final RecommendationRepository recommendationRepository;
     private final UserRepository userRepository;
     private final FileService fileService;
 
@@ -95,5 +91,27 @@ public class UserService {
                 userSearchDto.getCity(),
                 userSearchDto.getGender()
         ).stream().map(FindUserDto::new).toList();
+    }
+
+    @Transactional
+    public void recommendation(Long fromUserId, Long toUserId) {
+        if (fromUserId.equals(toUserId)) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "본인을 추천할 수 없습니다.");
+        }
+
+        User toUser = userRepository.findByUserId(toUserId).orElseThrow(
+                () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
+
+        Optional<Recommendation> existing = recommendationRepository.findByFromUser_UserIdAndToUser_UserId(fromUserId, toUserId);
+
+        if (existing.isPresent()) {
+            recommendationRepository.delete(existing.get());
+            toUser.getProfile().cancelRecommendation();
+        } else {
+            User fromUser = userRepository.findByUserId(fromUserId).orElseThrow(
+                    () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
+            recommendationRepository.save(new Recommendation(fromUser, toUser));
+            toUser.getProfile().addRecommendation();
+        }
     }
 }

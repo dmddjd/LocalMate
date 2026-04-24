@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"from_user_id", "profile_id"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"from_user_id", "to_user_id"}))
 public class Recommendation {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long recommendationId;
@@ -17,11 +17,11 @@ public class Recommendation {
     private User fromUser;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "profile_id", nullable = false)
-    private Profile profile;
+    @JoinColumn(name = "to_user_id", nullable = false)
+    private User toUser;
 
-    public Recommendation(User fromUser, Profile profile) {
+    public Recommendation(User fromUser, User toUser) {
         this.fromUser = fromUser;
-        this.profile = profile;
+        this.toUser = toUser;
     }
 }
