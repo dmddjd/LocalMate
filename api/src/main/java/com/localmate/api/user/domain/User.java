@@ -111,4 +111,12 @@ public class User {
         this.addressLine1 = addressLine1;
         this.addressLine2 = addressLine2;
     }
+
+    public void changeRole(Role role) {
+        this.role = role;
+    }
+
+    public void changeStatus(Status status) {
+        this.status = status;
+    }
 }

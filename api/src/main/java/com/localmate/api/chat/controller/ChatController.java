@@ -5,6 +5,7 @@ import com.localmate.api.chat.dto.*;
 import com.localmate.api.chat.service.ChatService;
 import com.localmate.api.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +29,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/chat")
+@Tag(name = "Chat Controller", description = "채팅 API 입니다.")
 public class ChatController {
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;

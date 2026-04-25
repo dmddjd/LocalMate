@@ -65,7 +65,7 @@ public class UserController {
     }
 
     @PostMapping("/recommend/{toUserId}")
-    @Operation(summary = "사용자 추천", description = "사용자를 추천/비추천 합니다.")
+    @Operation(summary = "유저 추천/추천 취소", description = "유저를 추천/추천 취소 합니다.")
     public ResponseEntity<ApiResponse<Void>> recommendation(
             @PathVariable Long toUserId,
             @AuthenticationPrincipal Long userId
