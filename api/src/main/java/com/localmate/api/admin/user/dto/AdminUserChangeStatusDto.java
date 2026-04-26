@@ -1,9 +1,9 @@
 package com.localmate.api.admin.user.dto;
 
-import com.localmate.api.user.domain.Status;
+import com.localmate.api.user.domain.UserStatus;
 import lombok.Getter;
 
 @Getter
 public class AdminUserChangeStatusDto {
-    private Status status;
+    private UserStatus userStatus;
 }

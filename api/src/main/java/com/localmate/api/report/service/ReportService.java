@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReportService {
     private final ReportRepository reportRepository;
-    private final CategoryRepository CategoryRepository;
+    private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
 
     @Transactional
@@ -31,7 +31,7 @@ public class ReportService {
         User reporter = userRepository.findByUserId(reporterId).orElseThrow(
                 () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
 
-        List<Category> categories = CategoryRepository.findAllById(dto.getCategoryIds());
+        List<Category> categories = categoryRepository.findAllById(dto.getCategoryIds());
 
         if (categories.size() != dto.getCategoryIds().size()) {
             throw new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 신고 카테고리가 포함되어 있습니다.");

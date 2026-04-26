@@ -25,7 +25,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByIdAndEmail(String id, String email);
 
     @Query("select u from User u " +
-            "where u.status = 'DELETE' " +
+            "where u.status = 'DELETED' " +
             "and u.withdrawDate < :cutoff")
     List<User> findAllDeletedUser(@Param("cutoff") LocalDateTime cutoff);
 }

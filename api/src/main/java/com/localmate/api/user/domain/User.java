@@ -63,10 +63,13 @@ public class User {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private UserStatus status;
 
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private Profile profile;
+
+    @Column(nullable = false)
+    private int reportCount = 0;
 
     @Builder
     public User(String userName, String nickname, String id, String password, String email, LocalDate birthDate, Gender gender, String phoneNumber, String country, String city, String addressLine1, String addressLine2) {
@@ -84,16 +87,16 @@ public class User {
         this.addressLine1 = addressLine1;
         this.addressLine2 = addressLine2;
         this.enrollDate = LocalDateTime.now();
-        this.status = Status.ACTIVE;
+        this.status = UserStatus.ACTIVE;
     }
 
     public void withdraw() {
-        this.status = Status.DELETE;
+        this.status = UserStatus.DELETED;
         this.withdrawDate = LocalDateTime.now();
     }
 
     public void restore() {
-        this.status = Status.ACTIVE;
+        this.status = UserStatus.ACTIVE;
         this.withdrawDate = null;
     }
 
@@ -116,7 +119,15 @@ public class User {
         this.role = role;
     }
 
-    public void changeStatus(Status status) {
-        this.status = status;
+    public void changeStatus(UserStatus userStatus) {
+        this.status = userStatus;
+    }
+
+    public void incrementReportCount() {
+        this.reportCount++;
+    }
+
+    public void decrementReportCount() {
+        this.reportCount--;
     }
 }

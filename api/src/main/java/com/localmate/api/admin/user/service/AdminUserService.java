@@ -5,7 +5,7 @@ import com.localmate.api.admin.user.dto.AdminUserListDto;
 import com.localmate.api.admin.user.repository.AdminUserRepository;
 import com.localmate.api.global.exception.CustomException;
 import com.localmate.api.user.domain.Role;
-import com.localmate.api.user.domain.Status;
+import com.localmate.api.user.domain.UserStatus;
 import com.localmate.api.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,7 +25,7 @@ public class AdminUserService {
     }
 
     @Transactional(readOnly = true)
-    public AdminUserDetailDto getUserDtail(Long userId) {
+    public AdminUserDetailDto getUserDetail(Long userId) {
         User user = adminUserRepository.getUserDetail(userId).orElseThrow(
                 () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
         return new AdminUserDetailDto(user);
@@ -39,9 +39,9 @@ public class AdminUserService {
     }
 
     @Transactional
-    public void changeStatus(Long userId, Status status) {
+    public void changeStatus(Long userId, UserStatus userStatus) {
         User user = adminUserRepository.findById(userId).orElseThrow(
                 () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
-        user.changeStatus(status);
+        user.changeStatus(userStatus);
     }
 }

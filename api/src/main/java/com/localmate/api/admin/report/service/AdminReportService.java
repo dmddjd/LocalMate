@@ -5,6 +5,7 @@ import com.localmate.api.admin.report.dto.AdminReportListDto;
 import com.localmate.api.admin.report.repository.AdminReportRepository;
 import com.localmate.api.global.exception.CustomException;
 import com.localmate.api.report.domain.Report;
+import com.localmate.api.report.domain.ReportStatus;
 import com.localmate.api.user.domain.User;
 import com.localmate.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +35,34 @@ public class AdminReportService {
                 () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
 
         return new AdminReportDetailDto(report, reportedUser);
+    }
+
+    @Transactional
+    public void sanction(Long reportId) {
+        Report report = adminReportRepository.getReportDetail(reportId).orElseThrow(
+                () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 신고입니다."));
+
+        User reportedUser = userRepository.findByUserId(report.getReportedId()).orElseThrow(
+                () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
+
+        if (report.getStatus() != ReportStatus.SANCTIONED) {
+            reportedUser.incrementReportCount();
+        }
+
+        report.sanction();
+    }
+
+    @Transactional
+    public void reject(Long reportId) {
+        Report report = adminReportRepository.getReportDetail(reportId).orElseThrow(
+                () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 신고입니다."));
+
+        if (report.getStatus() == ReportStatus.SANCTIONED) {
+            User reportedUser = userRepository.findByUserId(report.getReportedId()).orElseThrow(
+                    () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
+            reportedUser.decrementReportCount();
+        }
+
+        report.reject();
     }
 }

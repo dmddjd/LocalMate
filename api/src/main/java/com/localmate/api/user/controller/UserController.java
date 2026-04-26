@@ -48,12 +48,12 @@ public class UserController {
     @Operation(summary = "프로필 정보 수정", description = "로그인한 유저의 프로필 정보를 수정합니다.")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-                encoding = @Encoding(name = "profileUpdateDto",
+                encoding = @Encoding(name = "data",
                     contentType = "application/json")))
     public ResponseEntity<ApiResponse<Void>> updateProfile(
             @AuthenticationPrincipal Long userId,
-            @RequestPart ProfileUpdateDto profileUpdateDto,
-            @RequestPart(required = false)MultipartFile profileImage) {
+            @RequestPart("data") ProfileUpdateDto profileUpdateDto,
+            @RequestPart(required = false) MultipartFile profileImage) {
         userService.updateProfile(userId, profileUpdateDto, profileImage);
         return ResponseEntity.ok(ApiResponse.success("프로필 수정 성공!", null));
     }

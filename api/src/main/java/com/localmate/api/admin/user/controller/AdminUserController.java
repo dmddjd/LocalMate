@@ -19,18 +19,18 @@ import java.util.List;
 @RequestMapping("/admin/user")
 @Tag(name = "Admin - User Controller", description = "관리자 - 유저 API 입니다.")
 public class AdminUserController {
-    private final AdminUserService adminUserService;
+    private final AdminUserService userService;
 
     @GetMapping
     @Operation(summary = "모든 유저 조회", description = "모든 유저를 목록을 조회합니다.")
     public ResponseEntity<ApiResponse<List<AdminUserListDto>>> getAllUser() {
-        return ResponseEntity.ok(ApiResponse.success("모든 유저 목록 조회 성공", adminUserService.getAllUser()));
+        return ResponseEntity.ok(ApiResponse.success("모든 유저 목록 조회 성공", userService.getAllUser()));
     }
 
     @GetMapping("/{userId}")
     @Operation(summary = "유저 상세 조회", description = "유저 상세 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<AdminUserDetailDto>> getUserDetail(@PathVariable Long userId) {
-        return ResponseEntity.ok(ApiResponse.success("유저 상세 정보 조회 성공", adminUserService.getUserDtail(userId)));
+        return ResponseEntity.ok(ApiResponse.success("유저 상세 정보 조회 성공", userService.getUserDetail(userId)));
     }
 
     @PatchMapping("/{userId}/role")
@@ -39,7 +39,7 @@ public class AdminUserController {
             @PathVariable Long userId,
             @RequestBody AdminUserChangeRoleDto dto
             ) {
-        adminUserService.changeRole(userId, dto.getRole());
+        userService.changeRole(userId, dto.getRole());
         return ResponseEntity.ok(ApiResponse.success("권한 변경 성공", null));
     }
 
@@ -49,7 +49,7 @@ public class AdminUserController {
             @PathVariable Long userId,
             @RequestBody AdminUserChangeStatusDto dto
             ) {
-        adminUserService.changeStatus(userId, dto.getStatus());
+        userService.changeStatus(userId, dto.getUserStatus());
         return ResponseEntity.ok(ApiResponse.success("상태 변경 성공", null));
     }
 

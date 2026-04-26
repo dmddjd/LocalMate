@@ -2,10 +2,9 @@ package com.localmate.api.admin.user.dto;
 
 import com.localmate.api.user.domain.Gender;
 import com.localmate.api.user.domain.Role;
-import com.localmate.api.user.domain.Status;
+import com.localmate.api.user.domain.UserStatus;
 import com.localmate.api.user.domain.User;
 import lombok.Getter;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,7 +28,7 @@ public class AdminUserDetailDto {
     private String addressLine2;
     private LocalDateTime enrollDate;
     private LocalDateTime withdrawDate;
-    private Status status;
+    private UserStatus status;
 
     public AdminUserDetailDto(User user) {
         this.userId = user.getUserId();

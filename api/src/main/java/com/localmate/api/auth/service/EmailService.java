@@ -2,7 +2,7 @@ package com.localmate.api.auth.service;
 
 import com.localmate.api.global.exception.CustomException;
 import com.localmate.api.global.redis.RedisUtil;
-import com.localmate.api.user.domain.Status;
+import com.localmate.api.user.domain.UserStatus;
 import com.localmate.api.user.domain.User;
 import com.localmate.api.user.repository.UserRepository;
 import jakarta.mail.MessagingException;
@@ -87,7 +87,7 @@ public class EmailService {
         User user = userRepository.findById(id).orElseThrow(() ->
                 new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 아이디입니다."));
 
-        if (user.getStatus() != Status.DELETE) {
+        if (user.getStatus() != UserStatus.DELETED) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "탈퇴한 계정이 아닙니다.");
         }
 

@@ -5,7 +5,7 @@ import com.localmate.api.global.exception.CustomException;
 import com.localmate.api.global.jwt.JwtUtil;
 import com.localmate.api.global.redis.RedisUtil;
 import com.localmate.api.user.domain.Profile;
-import com.localmate.api.user.domain.Status;
+import com.localmate.api.user.domain.UserStatus;
 import com.localmate.api.user.domain.User;
 import com.localmate.api.user.repository.ProfileRepository;
 import com.localmate.api.user.repository.UserRepository;
@@ -81,7 +81,7 @@ public class AuthService {
         User user = userRepository.findById(restoreAccountDto.getId()).orElseThrow(() ->
                 new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 아이디 입니다."));
 
-        if (user.getStatus() != Status.DELETE) {
+        if (user.getStatus() != UserStatus.DELETED) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "탈퇴한 계정이 아닙니다.");
         }
 
@@ -97,7 +97,7 @@ public class AuthService {
             throw new CustomException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
         }
 
-        if (user.getStatus() == Status.DELETE) {
+        if (user.getStatus() == UserStatus.DELETED) {
             throw new CustomException(HttpStatus.FORBIDDEN, "탈퇴한 계정입니다. 30일 이내로 복구 가능합니다.");
         }
 

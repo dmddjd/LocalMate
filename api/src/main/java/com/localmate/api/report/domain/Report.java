@@ -44,6 +44,14 @@ public class Report {
         this.status = ReportStatus.PENDING;
     }
 
+    public void sanction() {
+        this.status = ReportStatus.SANCTIONED;
+    }
+
+    public void reject() {
+        this.status = ReportStatus.REJECTED;
+    }
+
     @PrePersist
     public void prePersist() {
         this.reportDate = LocalDateTime.now();
