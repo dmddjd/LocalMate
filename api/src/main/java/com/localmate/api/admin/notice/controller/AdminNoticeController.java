@@ -2,6 +2,7 @@ package com.localmate.api.admin.notice.controller;
 
 import com.localmate.api.admin.notice.dto.AdminCreateNoticeDto;
 import com.localmate.api.admin.notice.dto.AdminEditNoticeDto;
+import com.localmate.api.admin.notice.dto.AdminNoticeDetailDto;
 import com.localmate.api.admin.notice.dto.AdminNoticeListDto;
 import com.localmate.api.admin.notice.service.AdminNoticeService;
 import com.localmate.api.global.response.ApiResponse;
@@ -45,6 +46,15 @@ public class AdminNoticeController {
     public ResponseEntity<ApiResponse<List<AdminNoticeListDto>>> getAllNotice() {
         return ResponseEntity.ok(ApiResponse.success("공지 목록 조회 성공", adminNoticeService.getAllNotice()));
     }
+
+    @GetMapping("/{noticeId}")
+    @Operation(summary = "공지 상세 조회", description = "공지 상세 정보를 조회입니다.")
+    public ResponseEntity<ApiResponse<AdminNoticeDetailDto>> getNoticeDetail(@PathVariable Long noticeId) {
+        return ResponseEntity.ok(ApiResponse.success("공지 상세 조회 성공", adminNoticeService.getNoticeDetail(noticeId)));
+    }
+
+
+
 
     @PatchMapping(value = "/{noticeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "공지 수정", description = "공지를 수정합니다.")

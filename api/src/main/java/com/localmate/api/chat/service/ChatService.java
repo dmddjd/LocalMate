@@ -239,6 +239,10 @@ public class ChatService {
             throw new CustomException(HttpStatus.FORBIDDEN, "해당 채팅방의 메시지가 아닙니다.");
         }
 
+        chatFileRepository.findAllByChatMsg_ChatMsgIdIn(List.of(chatMsgId))
+                .stream()
+                .map(ChatFile::getFile)
+                .forEach(fileService::delete);
         chatMsg.delete();
 
         ChatRoom chatRoom = chatMsg.getChatRoom();
@@ -284,6 +288,11 @@ public class ChatService {
 
         if (!chatParticipantRepository.existAnyActiveParticipant(chatRoomId)) {
             participant.getChatRoom().close();
+
+            chatFileRepository.findAllByChatMsg_ChatRoom_ChatRoomIdIn(List.of(chatRoomId))
+                    .stream()
+                    .map(ChatFile::getFile)
+                    .forEach(fileService::delete);
         }
 
         return participant.getUser().getNickname();

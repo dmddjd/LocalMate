@@ -114,4 +114,17 @@ public class UserService {
             toUser.getProfile().addRecommendation();
         }
     }
+
+    @Transactional
+    public void withdraw(Long userId) {
+        User user = userRepository.findByUserId(userId).orElseThrow(
+                () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
+
+        Profile profile = user.getProfile();
+        if (profile != null && profile.getProfileImage() != null) {
+            fileService.delete(profile.getProfileImage());
+        }
+
+        user.withdraw();
+    }
 }

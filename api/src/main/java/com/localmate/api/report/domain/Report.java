@@ -17,7 +17,9 @@ public class Report {
     private Long reportId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reporter_id", nullable = false)
+    @JoinColumn(name = "reporter_id", nullable = false,
+    foreignKey = @ForeignKey(foreignKeyDefinition =
+            "foreign key (reporter_id) references user(user_id) on delete set null"))
     private User reporter;
 
     @Column(nullable = false)

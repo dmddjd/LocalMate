@@ -62,7 +62,7 @@ public class AdminNotice {
     }
 
     public void deleteNotice() {
-        this.status = NoticeStatus.DELETE;
+        this.status = NoticeStatus.DELETED;
         this.deleteDate = LocalDateTime.now();
     }
 

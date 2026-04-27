@@ -17,6 +17,7 @@ public class AdminUserDetailDto {
     private String profileImagePath;
     private String userName;
     private String nickname;
+    private int reportCount;
     private String email;
     private LocalDate birthDate;
     private int age;
@@ -36,6 +37,7 @@ public class AdminUserDetailDto {
         this.profileImagePath = user.getProfile().getProfileImagePath();
         this.userName = user.getUserName();
         this.nickname = user.getNickname();
+        this.reportCount = user.getReportCount();
         this.email = user.getEmail();
         this.birthDate = user.getBirthDate();
         this.age = Period.between(user.getBirthDate(), LocalDate.now()).getYears();

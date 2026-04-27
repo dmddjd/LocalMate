@@ -4,6 +4,7 @@ import com.localmate.api.admin.notice.domain.AdminNotice;
 import com.localmate.api.admin.notice.domain.AdminNoticeFile;
 import com.localmate.api.admin.notice.dto.AdminCreateNoticeDto;
 import com.localmate.api.admin.notice.dto.AdminEditNoticeDto;
+import com.localmate.api.admin.notice.dto.AdminNoticeDetailDto;
 import com.localmate.api.admin.notice.dto.AdminNoticeListDto;
 import com.localmate.api.admin.notice.repository.AdminNoticeFileRepository;
 import com.localmate.api.admin.notice.repository.AdminNoticeRepository;
@@ -45,7 +46,15 @@ public class AdminNoticeService {
 
     @Transactional(readOnly = true)
     public List<AdminNoticeListDto> getAllNotice() {
-        return adminNoticeRepository.getAllNotice().stream().map(AdminNoticeListDto::new).toList();
+        return adminNoticeRepository.getAllNotices().stream().map(AdminNoticeListDto::new).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminNoticeDetailDto getNoticeDetail(Long noticeId) {
+        AdminNotice notice = adminNoticeRepository.getNoticeDetail(noticeId).orElseThrow(
+                () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 공지입니다."));
+        return new AdminNoticeDetailDto(notice);
+
     }
 
     @Transactional
@@ -72,6 +81,7 @@ public class AdminNoticeService {
     public void deleteNotice(Long noticeId) {
         AdminNotice notice = adminNoticeRepository.findById(noticeId).orElseThrow(
                 () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 공지입니다."));
-        notice.deleteNotice();
+       notice.getAdminNoticeFiles().forEach(nf -> fileService.delete(nf.getFile()));
+       notice.deleteNotice();
     }
 }

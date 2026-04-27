@@ -64,7 +64,7 @@ public class AuthService {
     }
 
     public void withdraw(Long userId, String password) {
-        User user = userRepository.findByUserId(userId).orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "유저가 존재하지 않습니다."));
+        User user = userRepository.findByUserId(userId).orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
 
         if(!passwordEncoder.matches(password, user.getPassword())) {
             throw new CustomException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
