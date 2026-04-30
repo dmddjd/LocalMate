@@ -52,6 +52,4 @@ public class AdminUserController {
         userService.changeStatus(userId, dto.getUserStatus());
         return ResponseEntity.ok(ApiResponse.success("상태 변경 성공", null));
     }
-
-
 }

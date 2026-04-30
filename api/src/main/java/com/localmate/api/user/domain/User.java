@@ -71,6 +71,8 @@ public class User {
     @Column(nullable = false)
     private int reportCount = 0;
 
+    private LocalDateTime suspendedUtil;
+
     @Builder
     public User(String userName, String nickname, String id, String password, String email, LocalDate birthDate, Gender gender, String phoneNumber, String country, String city, String addressLine1, String addressLine2) {
         this.role = Role.USER;
@@ -129,5 +131,15 @@ public class User {
 
     public void decrementReportCount() {
         this.reportCount--;
+    }
+
+    public void suspend(LocalDateTime suspendedUtil) {
+        this.status = UserStatus.SUSPENDED;
+        this.suspendedUtil = suspendedUtil;
+    }
+
+    public void liftSuspension() {
+        this.status = UserStatus.ACTIVE;
+        this.suspendedUtil = null;
     }
 }

@@ -33,15 +33,15 @@ public class AdminReportController {
 
     @PatchMapping("/{reportId}/sanction")
     @Operation(summary = "신고 제재 처리", description = "신고 상태를 변경합니다.")
-    public ResponseEntity<ApiResponse<Void>> sanction(@PathVariable Long reportId) {
-        adminReportService.sanction(reportId);
+    public ResponseEntity<ApiResponse<Void>> reportSanction(@PathVariable Long reportId) {
+        adminReportService.reportSanction(reportId);
         return ResponseEntity.ok(ApiResponse.success("제재 처리 성공", null));
     }
 
     @PatchMapping("/{reportId}/reject")
     @Operation(summary = "신고 기각 처리", description = "신고 상태를 변경합니다.")
-    public ResponseEntity<ApiResponse<Void>> reject(@PathVariable Long reportId) {
-        adminReportService.reject(reportId);
+    public ResponseEntity<ApiResponse<Void>> reportReject(@PathVariable Long reportId) {
+        adminReportService.reportReject(reportId);
         return ResponseEntity.ok(ApiResponse.success("기각 처리 성공", null));
     }
 

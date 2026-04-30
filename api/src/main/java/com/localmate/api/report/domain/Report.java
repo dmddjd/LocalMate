@@ -46,11 +46,11 @@ public class Report {
         this.status = ReportStatus.PENDING;
     }
 
-    public void sanction() {
+    public void reportSanction() {
         this.status = ReportStatus.SANCTIONED;
     }
 
-    public void reject() {
+    public void reportReject() {
         this.status = ReportStatus.REJECTED;
     }
 
