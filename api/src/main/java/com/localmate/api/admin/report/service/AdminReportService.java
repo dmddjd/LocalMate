@@ -8,8 +8,8 @@ import com.localmate.api.admin.report.repository.AdminReportRepository;
 import com.localmate.api.admin.report.repository.SanctionRepository;
 import com.localmate.api.global.exception.CustomException;
 import com.localmate.api.global.redis.RedisUtil;
-import com.localmate.api.report.domain.Report;
-import com.localmate.api.report.domain.ReportStatus;
+import com.localmate.api.user.domain.Report;
+import com.localmate.api.user.domain.ReportStatus;
 import com.localmate.api.user.domain.User;
 import com.localmate.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -87,9 +87,11 @@ public class AdminReportService {
         SanctionType sanctionType = determineSanctionType(user.getReportCount());
         LocalDateTime suspendedUtil = calculateSuspendedUtil(sanctionType);
 
-        if (suspendedUtil != null) {
+        if (sanctionType == SanctionType.WARNING) {
+            redisUtil.setDataExpire("Warn:" + user.getUserId(), sanctionType.getMessage(), 60 * 60 * 24 * 30L);
+        } else {
             user.suspend(suspendedUtil);
-            redisUtil.deleteData(user.getUserId().toString()); // refresh token 무효화
+            redisUtil.deleteData(user.getUserId().toString());
             redisUtil.setDataExpire(
                     "Suspend:" + user.getUserId(),
                     sanctionType.getMessage(),

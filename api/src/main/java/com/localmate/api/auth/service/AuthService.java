@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -89,11 +90,11 @@ public class AuthService {
         emailService.removeRestoreVerified(restoreAccountDto.getEmail());
     }
 
-    public Map<String, String> login(LoginDto loginDto) {
-        User user = userRepository.findById(loginDto.getId())
+    public LoginResponseDto login(LoginRequestDto loginRequestDto) {
+        User user = userRepository.findById(loginRequestDto.getId())
                 .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 아이디입니다."));
 
-        if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
             throw new CustomException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
         }
 
@@ -101,16 +102,21 @@ public class AuthService {
             throw new CustomException(HttpStatus.FORBIDDEN, "탈퇴한 계정입니다. 30일 이내로 복구 가능합니다.");
         }
 
+        if (user.getStatus() == UserStatus.SUSPENDED) {
+            String until = user.getSuspendedUtil().format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH시"));
+            throw new CustomException(HttpStatus.FORBIDDEN, "정지된 계정입니다. 해제일: " + until);
+        }
+
         String accessToken = jwtUtil.createAccessToken(user.getUserId(), user.getRole().name());
         String refreshToken = jwtUtil.createRefreshToken(user.getUserId());
-
         redisUtil.setDataExpire(user.getUserId().toString(), refreshToken, 60 * 60 * 24 * 7L);
 
-        Map<String, String> tokenMap = new HashMap<>();
-        tokenMap.put("accessToken", accessToken);
-        tokenMap.put("refreshToken", refreshToken);
+        String warning = redisUtil.getData("Warn: " + user.getUserId());
+        if (warning != null) {
+            redisUtil.deleteData("Warn: " + user.getUserId());
+        }
 
-        return tokenMap;
+        return new LoginResponseDto(accessToken, refreshToken, warning);
     }
 
     public void logout(Long userId, String accessToken) {

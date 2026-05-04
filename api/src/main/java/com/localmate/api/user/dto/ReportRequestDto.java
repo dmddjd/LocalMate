@@ -1,4 +1,4 @@
-package com.localmate.api.report.dto;
+package com.localmate.api.user.dto;
 
 import lombok.Getter;
 

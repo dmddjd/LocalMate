@@ -46,9 +46,9 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "로그인", description = "아이디와 비밀번호로 로그인합니다.")
-    public ResponseEntity<ApiResponse<Map<String, String>>> login(@Valid @RequestBody LoginDto loginDto) {
-        Map<String, String> tokenMap = authService.login(loginDto);
-        return ResponseEntity.ok(ApiResponse.success("로그인 성공", tokenMap));
+    public ResponseEntity<ApiResponse<LoginResponseDto>> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
+        LoginResponseDto response = authService.login(loginRequestDto);
+        return ResponseEntity.ok(ApiResponse.success("로그인 성공", response));
     }
 
     @PostMapping("/logout")

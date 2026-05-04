@@ -1,6 +1,7 @@
 package com.localmate.api.user.controller;
 
 import com.localmate.api.global.response.ApiResponse;
+import com.localmate.api.user.dto.ReportRequestDto;
 import com.localmate.api.user.dto.FindUserDto;
 import com.localmate.api.user.dto.ProfileDto;
 import com.localmate.api.user.dto.ProfileUpdateDto;
@@ -74,4 +75,12 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("추천 처리 완료", null));
     }
 
+    @PostMapping("/report")
+    public ResponseEntity<ApiResponse<Void>> report(
+            @RequestBody ReportRequestDto request,
+            @AuthenticationPrincipal Long userId
+    ) {
+        userService.report(userId, request);
+        return ResponseEntity.ok(ApiResponse.success("신고가 접수되었습니다.",null));
+    }
 }

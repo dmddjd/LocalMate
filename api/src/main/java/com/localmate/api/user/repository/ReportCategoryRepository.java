@@ -1,7 +1,6 @@
-package com.localmate.api.report.repository;
+package com.localmate.api.user.repository;
 
-import com.localmate.api.report.domain.Category;
-import com.localmate.api.report.domain.ReportCategory;
+import com.localmate.api.user.domain.ReportCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

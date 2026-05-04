@@ -1,4 +1,4 @@
-package com.localmate.api.report.domain;
+package com.localmate.api.user.domain;
 
 public enum ReportStatus {
     PENDING, SANCTIONED, REJECTED

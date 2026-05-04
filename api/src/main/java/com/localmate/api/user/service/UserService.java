@@ -4,6 +4,9 @@ import com.localmate.api.global.exception.CustomException;
 import com.localmate.api.global.file.domain.File;
 import com.localmate.api.global.file.domain.FileType;
 import com.localmate.api.global.file.service.FileService;
+import com.localmate.api.user.domain.Category;
+import com.localmate.api.user.domain.Report;
+import com.localmate.api.user.dto.ReportRequestDto;
 import com.localmate.api.user.domain.*;
 import com.localmate.api.user.dto.FindUserDto;
 import com.localmate.api.user.dto.UserSearchDto;
@@ -32,6 +35,8 @@ public class UserService {
     private final RecommendationRepository recommendationRepository;
     private final UserRepository userRepository;
     private final FileService fileService;
+    private final ReportRepository reportRepository;
+    private final CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
     public ProfileDto getProfile(Long userId) {
@@ -126,5 +131,23 @@ public class UserService {
         }
 
         user.withdraw();
+    }
+
+    @Transactional
+    public void report(Long reporterId, ReportRequestDto dto) {
+        if (reportRepository.existsByReporter_UserIdAndReportedId(reporterId, dto.getReportedId())) {
+            throw new CustomException(HttpStatus.CONFLICT, "이미 신고한 대상입니다.");
+        }
+
+        User reporter = userRepository.findByUserId(reporterId).orElseThrow(
+                () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
+
+        List<Category> categories = categoryRepository.findAllById(dto.getCategoryIds());
+
+        if (categories.size() != dto.getCategoryIds().size()) {
+            throw new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 신고 카테고리가 포함되어 있습니다.");
+        }
+
+        reportRepository.save(new Report(reporter, dto.getReportedId(), categories, dto.getDescription()));
     }
 }

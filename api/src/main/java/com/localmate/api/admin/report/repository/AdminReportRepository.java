@@ -1,6 +1,6 @@
 package com.localmate.api.admin.report.repository;
 
-import com.localmate.api.report.domain.Report;
+import com.localmate.api.user.domain.Report;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

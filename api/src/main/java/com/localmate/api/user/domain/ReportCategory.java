@@ -1,4 +1,4 @@
-package com.localmate.api.report.domain;
+package com.localmate.api.user.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;

@@ -1,9 +1,8 @@
 package com.localmate.api.admin.report.dto;
 
-import com.localmate.api.report.domain.Report;
-import com.localmate.api.report.domain.ReportStatus;
+import com.localmate.api.user.domain.Report;
+import com.localmate.api.user.domain.ReportStatus;
 import com.localmate.api.user.domain.User;
-import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.LocalDateTime;

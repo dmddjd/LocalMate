@@ -1,6 +1,5 @@
-package com.localmate.api.report.domain;
+package com.localmate.api.user.domain;
 
-import com.localmate.api.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +16,7 @@ public class Report {
     private Long reportId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reporter_id", nullable = false,
+    @JoinColumn(name = "reporter_id", nullable = true,
     foreignKey = @ForeignKey(foreignKeyDefinition =
             "foreign key (reporter_id) references user(user_id) on delete set null"))
     private User reporter;
