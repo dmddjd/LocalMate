@@ -73,6 +73,8 @@ public class User {
 
     private LocalDateTime suspendedUtil;
 
+    private LocalDateTime lastLoginDate;
+
     @Builder
     public User(String userName, String nickname, String id, String password, String email, LocalDate birthDate, Gender gender, String phoneNumber, String country, String city, String addressLine1, String addressLine2) {
         this.role = Role.USER;
@@ -141,5 +143,9 @@ public class User {
     public void liftSuspension() {
         this.status = UserStatus.ACTIVE;
         this.suspendedUtil = null;
+    }
+
+    public void updateLastLoginDate(LocalDateTime lastLoginDate) {
+        this.lastLoginDate = lastLoginDate;
     }
 }

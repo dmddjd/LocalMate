@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -110,6 +111,8 @@ public class AuthService {
         String accessToken = jwtUtil.createAccessToken(user.getUserId(), user.getRole().name());
         String refreshToken = jwtUtil.createRefreshToken(user.getUserId());
         redisUtil.setDataExpire(user.getUserId().toString(), refreshToken, 60 * 60 * 24 * 7L);
+
+        user.updateLastLoginDate(LocalDateTime.now());
 
         String warning = redisUtil.getData("Warn: " + user.getUserId());
         if (warning != null) {
