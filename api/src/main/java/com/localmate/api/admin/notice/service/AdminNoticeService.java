@@ -2,6 +2,7 @@ package com.localmate.api.admin.notice.service;
 
 import com.localmate.api.admin.notice.domain.AdminNotice;
 import com.localmate.api.admin.notice.domain.AdminNoticeFile;
+import com.localmate.api.admin.notice.domain.NoticeStatus;
 import com.localmate.api.admin.notice.dto.AdminCreateNoticeDto;
 import com.localmate.api.admin.notice.dto.AdminEditNoticeDto;
 import com.localmate.api.admin.notice.dto.AdminNoticeDetailDto;
@@ -45,8 +46,8 @@ public class AdminNoticeService {
     }
 
     @Transactional(readOnly = true)
-    public List<AdminNoticeListDto> getAllNotice() {
-        return adminNoticeRepository.getAllNotices().stream().map(AdminNoticeListDto::new).toList();
+    public List<AdminNoticeListDto> getAllNotice(NoticeStatus status) {
+        return adminNoticeRepository.getAllNotices(status).stream().map(AdminNoticeListDto::new).toList();
     }
 
     @Transactional(readOnly = true)

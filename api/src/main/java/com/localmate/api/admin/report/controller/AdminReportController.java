@@ -4,6 +4,7 @@ import com.localmate.api.admin.report.dto.AdminReportDetailDto;
 import com.localmate.api.admin.report.dto.AdminReportListDto;
 import com.localmate.api.admin.report.service.AdminReportService;
 import com.localmate.api.global.response.ApiResponse;
+import com.localmate.api.user.domain.ReportStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,11 @@ public class AdminReportController {
 
     @GetMapping
     @Operation(summary = "신고 목록 조회", description = "모든 신고 내역을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<AdminReportListDto>>> getAllReport() {
-        return ResponseEntity.ok(ApiResponse.success("신고 목록 조회 성공", adminReportService.getAllReport()));
+    public ResponseEntity<ApiResponse<List<AdminReportListDto>>> getAllReport(
+            @RequestParam(required = false) ReportStatus status,
+            @RequestParam(required = false) String sortDirection
+    ) {
+        return ResponseEntity.ok(ApiResponse.success("신고 목록 조회 성공", adminReportService.getAllReport(status, sortDirection)));
     }
 
     @GetMapping("/{reportId}")

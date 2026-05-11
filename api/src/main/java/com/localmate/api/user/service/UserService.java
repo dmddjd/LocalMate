@@ -16,6 +16,7 @@ import com.localmate.api.user.dto.UserUpdateDto;
 import com.localmate.api.user.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,11 +91,17 @@ public class UserService {
     }
 
     @Transactional
-    public List<FindUserDto> findUsers(UserSearchDto userSearchDto) {
-        return profileRepository.findUsers(
+    public List<FindUserDto> searchUsers(UserSearchDto userSearchDto) {
+        Sort sort = Sort.unsorted();
+        if (userSearchDto.getSortDirection() != null) {
+            Sort.Direction direction = "DESC".equalsIgnoreCase(userSearchDto.getSortDirection()) ? Sort.Direction.DESC : Sort.Direction.ASC;
+            sort = Sort.by(direction, "recommendationCount");
+        }
+        return profileRepository.searchUsers(
                 userSearchDto.getCountry(),
                 userSearchDto.getCity(),
-                userSearchDto.getGender()
+                userSearchDto.getGender(),
+                sort
         ).stream().map(FindUserDto::new).toList();
     }
 

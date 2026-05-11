@@ -1,6 +1,7 @@
 package com.localmate.api.admin.notice.repository;
 
 import com.localmate.api.admin.notice.domain.AdminNotice;
+import com.localmate.api.admin.notice.domain.NoticeStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,8 +13,9 @@ import java.util.Optional;
 public interface AdminNoticeRepository extends JpaRepository<AdminNotice, Long> {
     // 모든 공지 조회
     @Query("select n from AdminNotice n " +
+            "where (:status is null or n.status = :status) " +
             "order by n.noticeDate desc")
-    List<AdminNotice> getAllNotices();
+    List<AdminNotice> getAllNotices(@Param("status")NoticeStatus status);
 
     // 공지 상세 조회
     @Query("select n from AdminNotice n " +

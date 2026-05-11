@@ -61,8 +61,8 @@ public class UserController {
 
     @GetMapping("/users")
     @Operation(summary = "현지인 목록 조회", description = "여행지의 현지인 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<FindUserDto>>> findUsers(UserSearchDto userSearchDto) {
-        return ResponseEntity.ok(ApiResponse.success("현지인 목록 조회 성공!", userService.findUsers(userSearchDto)));
+    public ResponseEntity<ApiResponse<List<FindUserDto>>> searchUsers(UserSearchDto userSearchDto) {
+        return ResponseEntity.ok(ApiResponse.success("현지인 목록 조회 성공!", userService.searchUsers(userSearchDto)));
     }
 
     @PostMapping("/recommend/{toUserId}")

@@ -1,6 +1,8 @@
 package com.localmate.api.admin.report.repository;
 
 import com.localmate.api.user.domain.Report;
+import com.localmate.api.user.domain.ReportStatus;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,8 +13,9 @@ import java.util.Optional;
 public interface AdminReportRepository extends JpaRepository<Report, Long> {
     // 모든 신고 조회
     @Query("select r from Report r " +
-            "join fetch r.reporter")
-    List<Report> getAllReport();
+            "join fetch r.reporter " +
+            "where (:status is null or r.status = :status)")
+    List<Report> getAllReport(@Param("status")ReportStatus status, Sort sort);
 
     // 신고 상세 조회
     @Query("select r from Report r " +

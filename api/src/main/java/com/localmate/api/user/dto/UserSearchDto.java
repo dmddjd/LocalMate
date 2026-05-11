@@ -10,4 +10,5 @@ public class UserSearchDto {
     private String country;
     private String city;
     private Gender gender;
+    private String sortDirection;
 }

@@ -2,6 +2,7 @@ package com.localmate.api.user.repository;
 
 import com.localmate.api.user.domain.Gender;
 import com.localmate.api.user.domain.Profile;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,8 +30,9 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
             "and u.city = :city " +
             "and (:gender is null or u.gender = :gender)" +
             "and u.status = 'ACTIVE'")
-    List<Profile> findUsers(@Param("country") String country,
+    List<Profile> searchUsers(@Param("country") String country,
                             @Param("city") String city,
-                            @Param("gender") Gender gender);
+                            @Param("gender") Gender gender,
+                            Sort sort);
 
 }

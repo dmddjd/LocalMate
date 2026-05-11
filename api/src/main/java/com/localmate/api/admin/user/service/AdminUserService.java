@@ -2,8 +2,10 @@ package com.localmate.api.admin.user.service;
 
 import com.localmate.api.admin.user.dto.AdminUserDetailDto;
 import com.localmate.api.admin.user.dto.AdminUserListDto;
+import com.localmate.api.admin.user.dto.AdminUserSearchDto;
 import com.localmate.api.admin.user.repository.AdminUserRepository;
 import com.localmate.api.global.exception.CustomException;
+import com.localmate.api.global.redis.RedisUtil;
 import com.localmate.api.user.domain.Role;
 import com.localmate.api.user.domain.UserStatus;
 import com.localmate.api.user.domain.User;
@@ -18,10 +20,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminUserService {
     private final AdminUserRepository adminUserRepository;
+    private final RedisUtil redisUtil;
 
     @Transactional(readOnly = true)
-    public List<AdminUserListDto> getAllUser() {
-        return adminUserRepository.getAllUser().stream().map(AdminUserListDto::new).toList();
+    public List<AdminUserListDto> getAllUser(AdminUserSearchDto searchDto) {
+        return adminUserRepository.getAllUser(
+                searchDto.getRole(),
+                searchDto.getGender(),
+                searchDto.getStatus()
+        ).stream().map(AdminUserListDto::new).toList();
     }
 
     @Transactional(readOnly = true)
@@ -36,6 +43,9 @@ public class AdminUserService {
         User user = adminUserRepository.findById(userId).orElseThrow(
                 () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
         user.changeRole(role);
+
+        redisUtil.deleteData(userId.toString());
+        redisUtil.setDataExpire("ForceLogout:" + userId, "true", 60 * 30L);
     }
 
     @Transactional

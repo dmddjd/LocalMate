@@ -1,5 +1,6 @@
 package com.localmate.api.admin.notice.controller;
 
+import com.localmate.api.admin.notice.domain.NoticeStatus;
 import com.localmate.api.admin.notice.dto.AdminCreateNoticeDto;
 import com.localmate.api.admin.notice.dto.AdminEditNoticeDto;
 import com.localmate.api.admin.notice.dto.AdminNoticeDetailDto;
@@ -43,8 +44,8 @@ public class AdminNoticeController {
 
     @GetMapping
     @Operation(summary = "공지 목록 조회", description = "공지 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<AdminNoticeListDto>>> getAllNotice() {
-        return ResponseEntity.ok(ApiResponse.success("공지 목록 조회 성공", adminNoticeService.getAllNotice()));
+    public ResponseEntity<ApiResponse<List<AdminNoticeListDto>>> getAllNotice(@RequestParam(required = false) NoticeStatus status) {
+        return ResponseEntity.ok(ApiResponse.success("공지 목록 조회 성공", adminNoticeService.getAllNotice(status)));
     }
 
     @GetMapping("/{noticeId}")

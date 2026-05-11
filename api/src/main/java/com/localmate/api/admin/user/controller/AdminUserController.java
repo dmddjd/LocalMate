@@ -1,9 +1,6 @@
 package com.localmate.api.admin.user.controller;
 
-import com.localmate.api.admin.user.dto.AdminUserChangeStatusDto;
-import com.localmate.api.admin.user.dto.AdminUserDetailDto;
-import com.localmate.api.admin.user.dto.AdminUserListDto;
-import com.localmate.api.admin.user.dto.AdminUserChangeRoleDto;
+import com.localmate.api.admin.user.dto.*;
 import com.localmate.api.admin.user.service.AdminUserService;
 import com.localmate.api.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,8 +20,8 @@ public class AdminUserController {
 
     @GetMapping
     @Operation(summary = "모든 유저 조회", description = "모든 유저를 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<AdminUserListDto>>> getAllUser() {
-        return ResponseEntity.ok(ApiResponse.success("모든 유저 목록 조회 성공", userService.getAllUser()));
+    public ResponseEntity<ApiResponse<List<AdminUserListDto>>> getAllUser(AdminUserSearchDto searchDto) {
+        return ResponseEntity.ok(ApiResponse.success("모든 유저 목록 조회 성공", userService.getAllUser(searchDto)));
     }
 
     @GetMapping("/{userId}")

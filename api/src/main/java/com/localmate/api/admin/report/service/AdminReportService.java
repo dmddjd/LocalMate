@@ -14,6 +14,7 @@ import com.localmate.api.user.domain.User;
 import com.localmate.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,8 +33,13 @@ public class AdminReportService {
     private final RedisUtil redisUtil;
 
     @Transactional(readOnly = true)
-    public List<AdminReportListDto> getAllReport() {
-        return adminReportRepository.getAllReport().stream().map(AdminReportListDto::new).toList();
+    public List<AdminReportListDto> getAllReport(ReportStatus status, String sortDirection) {
+        Sort sort = Sort.unsorted();
+        if (sortDirection != null) {
+            Sort.Direction direction = "DESC".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
+            sort = Sort.by(direction, "reportDate");
+        }
+        return adminReportRepository.getAllReport(status, sort).stream().map(AdminReportListDto::new).toList();
     }
 
     @Transactional(readOnly = true)

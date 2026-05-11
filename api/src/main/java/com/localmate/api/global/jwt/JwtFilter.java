@@ -49,12 +49,18 @@ public class JwtFilter extends OncePerRequestFilter {
         Long userId = jwtUtil.getUserId(token);
         String role = jwtUtil.getRole(token);
 
-        // 7. SecurityContext에 Authentication 등록
+        // 7. 강제 로그아웃
+        if (redisUtil.getData("ForceLogout:" + userId) != null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 8. SecurityContext에 Authentication 등록
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(userId, null, List.of(new SimpleGrantedAuthority(role)));
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
-        // 8. 다음 필터로 넘김
+        // 9. 다음 필터로 넘김
         filterChain.doFilter(request, response);
     }
 }
