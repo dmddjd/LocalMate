@@ -128,19 +128,6 @@ public class UserService {
     }
 
     @Transactional
-    public void withdraw(Long userId) {
-        User user = userRepository.findByUserId(userId).orElseThrow(
-                () -> new CustomException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
-
-        Profile profile = user.getProfile();
-        if (profile != null && profile.getProfileImage() != null) {
-            fileService.delete(profile.getProfileImage());
-        }
-
-        user.withdraw();
-    }
-
-    @Transactional
     public void report(Long reporterId, ReportRequestDto dto) {
         if (reportRepository.existsByReporter_UserIdAndReportedId(reporterId, dto.getReportedId())) {
             throw new CustomException(HttpStatus.CONFLICT, "이미 신고한 대상입니다.");

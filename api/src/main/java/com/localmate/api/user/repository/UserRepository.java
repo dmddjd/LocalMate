@@ -28,9 +28,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "where u.status = 'DELETED' " +
             "and u.withdrawDate < :cutoff")
     List<User> findAllDeletedUser(@Param("cutoff") LocalDateTime cutoff);
-
-    @Query("select u from User u " +
-            "where u.status = 'SUSPENDED' " +
-            "and u.suspendedUtil < :now")
-    List<User> findAllExpiredSuspensions(@Param("now") LocalDateTime now);
 }

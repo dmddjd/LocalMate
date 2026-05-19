@@ -1,7 +1,6 @@
 package com.localmate.api.chat.repository;
 
 import com.localmate.api.chat.domain.ChatRoom;
-import org.springframework.beans.PropertyValues;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
